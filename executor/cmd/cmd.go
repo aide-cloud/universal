@@ -18,7 +18,7 @@ type LierCmd struct {
 	service   []executor.Service
 }
 
-func New(appName, cmdName, desc, version, buildTime, runTime, author string) *LierCmd {
+func NewCmd(appName, cmdName, desc, version, buildTime, runTime, author string) *LierCmd {
 	return &LierCmd{
 		AppName:   appName,
 		CmdName:   cmdName,

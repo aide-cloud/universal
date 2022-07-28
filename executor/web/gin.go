@@ -29,7 +29,7 @@ type (
 	}
 )
 
-func New() *LierGin {
+func NewGin() *LierGin {
 	l := &LierGin{}
 	return l
 }

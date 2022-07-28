@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -29,8 +30,11 @@ type (
 	}
 )
 
-func NewGin() *LierGin {
+func NewGin(routerFunc ...func(router *gin.Engine)) *LierGin {
 	l := &LierGin{}
+	if len(routerFunc) > 0 {
+		l.SetRouterFunc(routerFunc[0])
+	}
 	return l
 }
 
@@ -47,7 +51,7 @@ func (l *LierGin) SetRouterFunc(routerFunc func(router *gin.Engine)) {
 	l.registerRouterFunc = routerFunc
 }
 
-func (l *LierGin) Init() {
+func (l *LierGin) initGin() {
 	// gin初始化
 	router := gin.New()
 
@@ -75,19 +79,8 @@ func (l *LierGin) Init() {
 }
 
 func (l *LierGin) Start() error {
-	// channel 监听 http server 启动
-	ch := make(chan error)
-	go func() {
-		l.Init()
-		err := l.server.ListenAndServe()
-		if err != nil {
-			ch <- err
-			return
-		}
-		ch <- nil
-	}()
-	err := <-ch
-	return err
+	l.initGin()
+	return l.server.ListenAndServe()
 }
 
 // Stop http server stop
@@ -96,6 +89,6 @@ func (l *LierGin) Stop() {
 	defer cancel()
 	err := l.server.Shutdown(ctx)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 }

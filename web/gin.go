@@ -83,6 +83,13 @@ func HttpPing(router *gin.Engine) {
 	})
 }
 
+// HttpCheckHealth 检查服务健康
+func HttpCheckHealth(router *gin.Engine) {
+	router.GET("/check", func(ctx *gin.Context) {
+		ctx.AbortWithStatus(http.StatusOK)
+	})
+}
+
 // httpSelfIntroduction 自我介绍
 func httpSelfIntroduction(router *gin.Engine) {
 	router.GET("/", func(ctx *gin.Context) {

@@ -55,6 +55,7 @@ func (l *LierGin) initGin() {
 		}
 	} else {
 		HttpPing(router)
+		httpSelfIntroduction(router)
 	}
 
 	l.server.Handler = router
@@ -79,5 +80,18 @@ func (l *LierGin) Stop() {
 func HttpPing(router *gin.Engine) {
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusOK)
+	})
+}
+
+// httpSelfIntroduction 自我介绍
+func httpSelfIntroduction(router *gin.Engine) {
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    http.StatusOK,
+			"message": "hello world",
+			"version": gin.Version,
+			"now":     time.Now().Format("2006-01-02 15:04:05"),
+			"author":  "biao.hu",
+		})
 	})
 }

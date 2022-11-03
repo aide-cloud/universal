@@ -18,63 +18,45 @@ const (
 type (
 	LierGin struct {
 		server             *http.Server
-		registerRouterFunc func(router *gin.Engine)
-	}
-
-	Config struct {
-		Addr           string
-		Port           int
-		ReadTimeout    time.Duration
-		WriteTimeout   time.Duration
-		MaxHeaderBytes int
+		registerRouterFunc []func(router *gin.Engine)
 	}
 )
 
 func NewGin(routerFunc ...func(router *gin.Engine)) *LierGin {
 	l := &LierGin{}
-	if len(routerFunc) > 0 {
-		l.SetRouterFunc(routerFunc[0])
-	}
+	l.SetRouters(routerFunc...)
 	return l
 }
 
-func (l *LierGin) SetServer(c *Config) {
-	l.server = &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", c.Addr, c.Port),
-		ReadTimeout:    c.ReadTimeout,
-		WriteTimeout:   c.WriteTimeout,
-		MaxHeaderBytes: c.MaxHeaderBytes,
-	}
+func (l *LierGin) SetServer(c *http.Server) {
+	l.server = c
 }
 
-func (l *LierGin) SetRouterFunc(routerFunc func(router *gin.Engine)) {
-	l.registerRouterFunc = routerFunc
+func (l *LierGin) SetRouters(routerFunc ...func(router *gin.Engine)) {
+	l.registerRouterFunc = append(l.registerRouterFunc, routerFunc...)
 }
 
 func (l *LierGin) initGin() {
 	// gin初始化
 	router := gin.New()
 
-	// 注册路由
-	if l.registerRouterFunc == nil {
-		l.SetRouterFunc(func(router *gin.Engine) {
-			router.GET("/ping", func(context *gin.Context) {
-				context.AbortWithStatus(http.StatusOK)
-			})
-		})
-	}
-
 	if l.server == nil {
-		l.SetServer(&Config{
-			Addr:           LOCALHOST,
-			Port:           PORT8080,
+		l.SetServer(&http.Server{
+			Addr:           fmt.Sprintf("%s:%d", LOCALHOST, PORT8080),
 			ReadTimeout:    time.Minute,
 			WriteTimeout:   time.Minute,
 			MaxHeaderBytes: 1 << 20,
 		})
 	}
 
-	l.registerRouterFunc(router)
+	if len(l.registerRouterFunc) > 0 {
+		for _, f := range l.registerRouterFunc {
+			f(router)
+		}
+	} else {
+		HttpPing(router)
+	}
+
 	l.server.Handler = router
 }
 
@@ -91,4 +73,11 @@ func (l *LierGin) Stop() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+// HttpPing router ping
+func HttpPing(router *gin.Engine) {
+	router.GET("/ping", func(ctx *gin.Context) {
+		ctx.AbortWithStatus(http.StatusOK)
+	})
 }

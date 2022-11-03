@@ -1,4 +1,4 @@
-package dao
+package connect
 
 // redis 连接池
 import (
@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	// RedisDao redis dao
+	// RedisDao redis connect
 	RedisDao struct {
 		Addr     string
 		Port     int

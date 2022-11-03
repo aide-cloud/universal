@@ -57,25 +57,25 @@ type ctrlC struct {
 	servicesLock sync.RWMutex
 }
 
-// NewCtrlC 初始化生成ctrlC
-func NewCtrlC() *ctrlC {
+// newCtrlC 初始化生成ctrlC
+func newCtrlC() *ctrlC {
 	return &ctrlC{}
 }
 
-// SetStarter 设置开始方法
-func (c *ctrlC) SetStarter(s Starter) *ctrlC {
+// setStarter 设置开始方法
+func (c *ctrlC) setStarter(s Starter) *ctrlC {
 	c.starts = s
 	return c
 }
 
-// SetStopper 设置结束方法
-func (c *ctrlC) SetStopper(s Stopper) *ctrlC {
+// setStopper 设置结束方法
+func (c *ctrlC) setStopper(s Stopper) *ctrlC {
 	c.stops = s
 	return c
 }
 
-// SetMulServices 设置注册多服务的方法
-func (c *ctrlC) SetMulServices(m MulServices) *ctrlC {
+// setMulServices 设置注册多服务的方法
+func (c *ctrlC) setMulServices(m MulServices) *ctrlC {
 	c.mulServices = m
 	return c
 }
@@ -92,8 +92,8 @@ func (c *ctrlC) waitKill() {
 	c.waitSignals(os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 }
 
-// Run 开始运行程序，遇到os.Interrupt停止
-func (c *ctrlC) Run() {
+// run 开始运行程序，遇到os.Interrupt停止
+func (c *ctrlC) run() {
 	go func() {
 		if reflect.ValueOf(c.starts).IsNil() {
 			return
@@ -220,14 +220,14 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 	fmt.Println(zeusStrUp + version)
 }
 
-var globalExecutor = NewCtrlC()
+var globalExecutor = newCtrlC()
 
 // ExecMulSerProgram 执行多服务程序
 func ExecMulSerProgram(ex MulServicesProgram) {
 	globalExecutor.servicesLock.Lock()
-	globalExecutor.SetMulServices(ex)
-	globalExecutor.SetStarter(ex)
-	globalExecutor.SetStopper(ex)
+	globalExecutor.setMulServices(ex)
+	globalExecutor.setStarter(ex)
+	globalExecutor.setStopper(ex)
 	globalExecutor.servicesLock.Unlock()
-	globalExecutor.Run()
+	globalExecutor.run()
 }

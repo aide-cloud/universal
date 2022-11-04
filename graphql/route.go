@@ -71,9 +71,11 @@ func NewHandler(root any, content embed.FS) *relay.Handler {
 	return &relay.Handler{Schema: graphql.MustParseSchema(s, root)}
 }
 
-func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS) {
+func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, isDev ...bool) {
+	if len(isDev) > 0 && isDev[0] {
+		r.GET("/graphql", gin.WrapF(NewGraphQLHandlerFunc()))
+	}
 	r.POST("/graphql", gin.WrapH(NewHandler(root, content)))
-	r.GET("/graphql", gin.WrapF(NewGraphQLHandlerFunc()))
 }
 
 // isStructPtr returns true if the given value is a struct pointer.

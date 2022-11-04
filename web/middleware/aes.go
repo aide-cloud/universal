@@ -3,11 +3,16 @@ package middleware
 import (
 	"encoding/json"
 	"errors"
+	"github.com/aide-cloud/universal/basic/assert"
 	"github.com/aide-cloud/universal/cipher"
 	"github.com/gin-gonic/gin"
 )
 
-const AccessToken = "AccessToken"
+const (
+	AccessToken            = "AccessToken"
+	PanicPassCallbackIsNil = "PassCallback is nil"
+	PanicErrCallbackIsNil  = "ErrCallback is nil"
+)
 
 type (
 	// AesAuthConf is the config for AesAuth
@@ -19,13 +24,26 @@ type (
 	}
 
 	// PassCallback is the callback for pass
-	PassCallback[T any] func(args T) bool
+	// args are: ctx, identity, token, marshal
+	// identity is the identity of the user
+	// token is the token for the user
+	// original is the original data
+	PassCallback[T any] func(ctx *gin.Context, identity T, token, original string) bool
 
 	// ErrCallback is the callback for error
+	// args are: ctx, err
+	//  is the error
 	ErrCallback func(ctx *gin.Context, err error)
 )
 
+// ErrTokenEmpty is the error for token empty
 var ErrTokenEmpty = errors.New("token is empty")
+
+// ErrIdentityType is the error for identity type
+var ErrIdentityType = errors.New("'identity' must be a struct or a pointer to a struct")
+
+// ErrTokenInvalid is the error for token invalid
+var ErrTokenInvalid = errors.New("token is invalid")
 
 // NewAesAuthConf returns a new AesAuthConf
 func NewAesAuthConf[T any](headerKey string, passCallback PassCallback[T], errCallback ErrCallback, aesCipher *cipher.AesCipher) AesAuthConf[T] {
@@ -43,6 +61,7 @@ func AesAuth[T any](conf AesAuthConf[T]) gin.HandlerFunc {
 	conf.checkConf()
 	return func(ctx *gin.Context) {
 		var m T
+		var flag = !assert.IsStruct(m) && !assert.IsStructPtr(m) && !assert.IsArray(m) && !assert.IsSlice(m) && !assert.IsMap(m)
 
 		token := ctx.GetHeader(conf.HeaderKey)
 		if token == "" {
@@ -56,13 +75,15 @@ func AesAuth[T any](conf AesAuthConf[T]) gin.HandlerFunc {
 			return
 		}
 
-		if err = json.Unmarshal([]byte(mStr), &m); err != nil {
-			conf.ErrCallback(ctx, err)
-			return
+		if !flag {
+			if err = json.Unmarshal([]byte(mStr), &m); err != nil {
+				conf.ErrCallback(ctx, err)
+				return
+			}
 		}
 
-		if !conf.PassCallback(m) {
-			conf.ErrCallback(ctx, err)
+		if !conf.PassCallback(ctx, m, token, mStr) {
+			conf.ErrCallback(ctx, ErrTokenInvalid)
 			return
 		}
 		ctx.Next()
@@ -75,14 +96,39 @@ func (a AesAuthConf[T]) checkConf() {
 	}
 
 	if a.PassCallback == nil {
-		panic("PassCallback is nil")
+		panic(PanicPassCallbackIsNil)
 	}
 
 	if a.ErrCallback == nil {
-		panic("ErrCallback is nil")
+		panic(PanicErrCallbackIsNil)
 	}
 
 	if a.AesCipher == nil {
 		panic("AesCipher is nil")
+	}
+}
+
+// GiveGatePass is the pass callback for give gate
+func GiveGatePass[T any](identity T, conf AesAuthConf[T]) gin.HandlerFunc {
+	conf.checkConf()
+	return func(ctx *gin.Context) {
+		if !assert.IsStruct(identity) {
+			conf.ErrCallback(ctx, ErrIdentityType)
+			return
+		}
+		//
+		marshal, err := json.Marshal(identity)
+		if err != nil {
+			conf.ErrCallback(ctx, err)
+			return
+		}
+
+		token, err := conf.AesCipher.EncryptAesBase64(string(marshal))
+		if err != nil {
+			conf.ErrCallback(ctx, err)
+			return
+		}
+
+		conf.PassCallback(ctx, identity, token, string(marshal))
 	}
 }

@@ -3,6 +3,8 @@ package assert
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"unicode/utf8"
 )
 
 // ToString converts a value to a string.
@@ -25,4 +27,25 @@ func ToString(v any) string {
 		}
 		return fmt.Sprintf("%v", val)
 	}
+}
+
+// Count counts the number of elements in a slice.
+func Count(target any) int {
+	count := 0
+	switch val := target.(type) {
+	case string:
+		count = utf8.RuneCountInString(val)
+
+	default:
+		// 反射获取数据类型
+		t := reflect.TypeOf(val)
+		switch t.Kind() {
+		case reflect.Slice, reflect.Array, reflect.Map:
+			count = reflect.ValueOf(val).Len()
+		default:
+			count = 0
+		}
+		count = 0
+	}
+	return count
 }

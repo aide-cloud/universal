@@ -1,24 +1,17 @@
-.*
-!.gitignore
-!.golangci.yml
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-*_secret.yaml
+# Test binary, built with `go test -c`
+*.test
 
-local.yaml
-*_local*.yaml
-*_local*.sh
-*_local*.go
-*_local_test*
-*_debug_bin.exe
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-git_stats
-
-deploy/source
-test/local
-
-*/internal/docs/
-
-build
-
-*.txt
-*.jpeg
+# Dependency directories (remove the comment below to include it)
+# vendor/
+bin
+.idea

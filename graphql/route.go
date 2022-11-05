@@ -2,12 +2,12 @@ package graphql
 
 import (
 	"embed"
+	"github.com/aide-cloud/universal/basic/assert"
 	"github.com/gin-gonic/gin"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"log"
 	"net/http"
-	"reflect"
 )
 
 func NewGraphQLHandlerFunc() http.HandlerFunc {
@@ -59,8 +59,8 @@ func NewGraphQLHandlerFunc() http.HandlerFunc {
 }
 
 func NewHandler(root any, content embed.FS) *relay.Handler {
-	// 判断root是否为结构体指针
-	if !isStructPtr(root) {
+	// 判断root是否为结构体指针或者结构体指针
+	if !assert.IsStruct(root) && !assert.IsStructPtr(root) {
 		log.Fatal("root must be a struct pointer")
 	}
 	s, err := String(content)
@@ -76,9 +76,4 @@ func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, isDev ...bool
 		r.GET("/graphql", gin.WrapF(NewGraphQLHandlerFunc()))
 	}
 	r.POST("/graphql", gin.WrapH(NewHandler(root, content)))
-}
-
-// isStructPtr returns true if the given value is a struct pointer.
-func isStructPtr(v any) bool {
-	return v != nil && reflect.TypeOf(v).Kind() == reflect.Ptr && reflect.TypeOf(v).Elem().Kind() == reflect.Struct
 }

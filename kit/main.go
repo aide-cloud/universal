@@ -16,9 +16,6 @@ var repo = flag.String("r", "https://github.com/aide-cloud/aide-family-layout.gi
 var repoPath = flag.String("p", "", "repo path")
 var nomod = flag.Bool("n", false, "no mod")
 
-// 是否强制覆盖
-var force = flag.Bool("f", false, "force to overwrite")
-
 var repoAddIgnores = []string{
 	"README.md", "LICENSE", ".gitignore", "cmd", "configs", "internal", "Makefile", "Dockerfile",
 }

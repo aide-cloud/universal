@@ -16,15 +16,15 @@ const (
 )
 
 type (
-	RouterOption func(router *gin.Engine)
+	Router func(router *gin.Engine)
 
 	LierGin struct {
 		server             *Server
-		registerRouterFunc []RouterOption
+		registerRouterFunc []Router
 	}
 )
 
-func NewGin(routerFunc ...RouterOption) *LierGin {
+func NewGin(routerFunc ...Router) *LierGin {
 	l := &LierGin{}
 	l.SetRouters(routerFunc...)
 	return l
@@ -34,7 +34,7 @@ func (l *LierGin) SetServer(c *Server) {
 	l.server = c
 }
 
-func (l *LierGin) SetRouters(routerFunc ...RouterOption) {
+func (l *LierGin) SetRouters(routerFunc ...Router) {
 	l.registerRouterFunc = append(l.registerRouterFunc, routerFunc...)
 }
 

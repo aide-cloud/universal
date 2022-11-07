@@ -23,6 +23,8 @@ type (
 		AesCipher    *cipher.AesCipher
 	}
 
+	AesAuthConfOption[T any] func(conf *AesAuthConf[T])
+
 	// PassCallback is the callback for pass
 	// args are: ctx, identity, token, marshal
 	// identity is the identity of the user
@@ -46,18 +48,49 @@ var ErrIdentityType = errors.New("'identity' must be a struct or a pointer to a 
 var ErrTokenInvalid = errors.New("token is invalid")
 
 // NewAesAuthConf returns a new AesAuthConf
-func NewAesAuthConf[T any](headerKey string, passCallback PassCallback[T], errCallback ErrCallback, aesCipher *cipher.AesCipher) AesAuthConf[T] {
-	return AesAuthConf[T]{
-		HeaderKey:    headerKey,
-		PassCallback: passCallback,
-		ErrCallback:  errCallback,
-		AesCipher:    aesCipher,
+func NewAesAuthConf[T any](options ...AesAuthConfOption[T]) *AesAuthConf[T] {
+	aes := &AesAuthConf[T]{}
+
+	for _, option := range options {
+		option(aes)
+	}
+
+	aes.checkConf()
+
+	return aes
+}
+
+// WithHeaderKey sets the header key
+func WithHeaderKey[T any](headKey string) AesAuthConfOption[T] {
+	return func(cfg *AesAuthConf[T]) {
+		cfg.HeaderKey = headKey
+	}
+}
+
+// WithPassCallback sets the pass callback
+func WithPassCallback[T any](passCallback PassCallback[T]) AesAuthConfOption[T] {
+	return func(cfg *AesAuthConf[T]) {
+		cfg.PassCallback = passCallback
+	}
+}
+
+// WithErrCallback sets the error callback
+func WithErrCallback[T any](errCallback ErrCallback) AesAuthConfOption[T] {
+	return func(cfg *AesAuthConf[T]) {
+		cfg.ErrCallback = errCallback
+	}
+}
+
+// WithAesCipher sets the aes cipher
+func WithAesCipher[T any](aesCipher *cipher.AesCipher) AesAuthConfOption[T] {
+	return func(cfg *AesAuthConf[T]) {
+		cfg.AesCipher = aesCipher
 	}
 }
 
 // AesAuth is a middleware for aes auth
 // It will check the token in header
-func AesAuth[T any](conf AesAuthConf[T]) gin.HandlerFunc {
+func AesAuth[T any](conf *AesAuthConf[T]) gin.HandlerFunc {
 	conf.checkConf()
 	return func(ctx *gin.Context) {
 		var m T
@@ -109,7 +142,7 @@ func (a AesAuthConf[T]) checkConf() {
 }
 
 // GiveGatePass is the pass callback for give gate
-func GiveGatePass[T any](identity T, conf AesAuthConf[T]) gin.HandlerFunc {
+func GiveGatePass[T any](identity T, conf *AesAuthConf[T]) gin.HandlerFunc {
 	conf.checkConf()
 	return func(ctx *gin.Context) {
 		if !assert.IsStruct(identity) {

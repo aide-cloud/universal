@@ -16,23 +16,25 @@ const (
 )
 
 type (
+	RouterOption func(router *gin.Engine)
+
 	LierGin struct {
-		server             *http.Server
-		registerRouterFunc []func(router *gin.Engine)
+		server             *Server
+		registerRouterFunc []RouterOption
 	}
 )
 
-func NewGin(routerFunc ...func(router *gin.Engine)) *LierGin {
+func NewGin(routerFunc ...RouterOption) *LierGin {
 	l := &LierGin{}
 	l.SetRouters(routerFunc...)
 	return l
 }
 
-func (l *LierGin) SetServer(c *http.Server) {
+func (l *LierGin) SetServer(c *Server) {
 	l.server = c
 }
 
-func (l *LierGin) SetRouters(routerFunc ...func(router *gin.Engine)) {
+func (l *LierGin) SetRouters(routerFunc ...RouterOption) {
 	l.registerRouterFunc = append(l.registerRouterFunc, routerFunc...)
 }
 
@@ -41,12 +43,7 @@ func (l *LierGin) initGin() {
 	router := gin.New()
 
 	if l.server == nil {
-		l.SetServer(&http.Server{
-			Addr:           fmt.Sprintf("%s:%d", LOCALHOST, PORT8080),
-			ReadTimeout:    time.Minute,
-			WriteTimeout:   time.Minute,
-			MaxHeaderBytes: 1 << 20,
-		})
+		l.SetServer(NewServer(WithServerAddr(fmt.Sprintf("%s:%d", LOCALHOST, PORT8080))))
 	}
 
 	if len(l.registerRouterFunc) > 0 {

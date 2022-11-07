@@ -20,7 +20,7 @@ type (
 )
 
 // NewLierCmd 初始化生成LierCmd
-func NewLierCmd(option *Option) *LierCmd {
+func NewLierCmd(option *LierCmdOption) *LierCmd {
 	return &LierCmd{
 		appName: option.AppName,
 		cmdName: option.CmdName,

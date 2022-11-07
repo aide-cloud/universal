@@ -6,7 +6,7 @@ import (
 )
 
 func TestName(t *testing.T) {
-	lierCmd := NewLierCmd(&Option{
+	lierCmd := NewLierCmd(&LierCmdOption{
 		AppName: "test",
 		CmdName: "test-cmd",
 		Desc:    "test-cmd-desc",
@@ -18,7 +18,7 @@ func TestName(t *testing.T) {
 }
 
 func TestOption(t *testing.T) {
-	lierCmd := NewLierCmd(NewOption(WithCmdName("test-cmd-option"), WithDesc("test-cmd-desc"), WithVersion("v1.0.0"), WithAuthor("biao.hu"), WithAppName("test-APP")))
+	lierCmd := NewLierCmd(NewLierCmdOption(WithCmdName("test-cmd-option"), WithDesc("test-cmd-desc"), WithVersion("v1.0.0"), WithAuthor("biao.hu"), WithAppName("test-APP")))
 	lierCmd.SetService(newtTestServer())
 	ExecMulSerProgram(lierCmd)
 }

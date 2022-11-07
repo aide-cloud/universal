@@ -1,11 +1,11 @@
 package executor
 
 type (
-	// Option 选项
-	Option struct {
+	// LierCmdOption 选项
+	LierCmdOption struct {
 		// AppName 应用名称
 		AppName string
-		// CmdName 命令名称
+		// LierCmdName 命令名称
 		CmdName string
 		// Version 版本号
 		Version string
@@ -15,11 +15,12 @@ type (
 		Author string
 	}
 
-	OptionFunc func(option *Option)
+	LierCmdOptionFunc func(LierCmdOption *LierCmdOption)
 )
 
-func NewOption(opts ...OptionFunc) *Option {
-	option := &Option{}
+// NewLierCmdOption 初始化生成LierCmdOption
+func NewLierCmdOption(opts ...LierCmdOptionFunc) *LierCmdOption {
+	option := &LierCmdOption{}
 	for _, opt := range opts {
 		opt(option)
 	}
@@ -27,36 +28,36 @@ func NewOption(opts ...OptionFunc) *Option {
 }
 
 // WithVersion 设置版本号
-func WithVersion(version string) OptionFunc {
-	return func(option *Option) {
-		option.Version = version
+func WithVersion(version string) LierCmdOptionFunc {
+	return func(LierCmdOption *LierCmdOption) {
+		LierCmdOption.Version = version
 	}
 }
 
 // WithAppName 设置应用名称
-func WithAppName(appName string) OptionFunc {
-	return func(option *Option) {
-		option.AppName = appName
+func WithAppName(appName string) LierCmdOptionFunc {
+	return func(LierCmdOption *LierCmdOption) {
+		LierCmdOption.AppName = appName
 	}
 }
 
 // WithCmdName 设置命令名称
-func WithCmdName(cmdName string) OptionFunc {
-	return func(option *Option) {
-		option.CmdName = cmdName
+func WithCmdName(LierCmdName string) LierCmdOptionFunc {
+	return func(LierCmdOption *LierCmdOption) {
+		LierCmdOption.CmdName = LierCmdName
 	}
 }
 
 // WithDesc 设置描述
-func WithDesc(desc string) OptionFunc {
-	return func(option *Option) {
-		option.Desc = desc
+func WithDesc(desc string) LierCmdOptionFunc {
+	return func(LierCmdOption *LierCmdOption) {
+		LierCmdOption.Desc = desc
 	}
 }
 
 // WithAuthor 设置作者
-func WithAuthor(author string) OptionFunc {
-	return func(option *Option) {
-		option.Author = author
+func WithAuthor(author string) LierCmdOptionFunc {
+	return func(LierCmdOption *LierCmdOption) {
+		LierCmdOption.Author = author
 	}
 }

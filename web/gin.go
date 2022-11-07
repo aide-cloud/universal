@@ -19,15 +19,71 @@ type (
 	Router func(router *gin.Engine)
 
 	LierGin struct {
+		engine             *gin.Engine
 		server             *Server
 		registerRouterFunc []Router
+		log                *log.Logger
 	}
+
+	LierGinOption func(*LierGin)
 )
 
-func NewGin(routerFunc ...Router) *LierGin {
+func NewGin(options ...LierGinOption) *LierGin {
 	l := &LierGin{}
-	l.SetRouters(routerFunc...)
+	for _, option := range options {
+		option(l)
+	}
+
+	if l.log == nil {
+		l.log = log.Default()
+		WithLogger(log.Default())(l)
+	}
+
+	if l.engine == nil {
+		WithEngine(gin.Default())(l)
+	}
+
+	if l.server == nil {
+		l.SetServer(NewServer(WithServerAddr(fmt.Sprintf("%s:%d", LOCALHOST, PORT8080))))
+	}
+
+	if len(l.registerRouterFunc) == 0 {
+		l.SetRouters(HttpPing, httpSelfIntroduction)
+	}
+
+	for _, f := range l.registerRouterFunc {
+		f(l.engine)
+	}
+
+	l.server.Handler = l.engine
+
 	return l
+}
+
+// WithEngine set server handler
+func WithEngine(engine *gin.Engine) LierGinOption {
+	return func(s *LierGin) {
+		s.engine = engine
+	}
+}
+
+func WithGinServer(c *Server) LierGinOption {
+	return func(l *LierGin) {
+		l.SetServer(c)
+	}
+}
+
+func WithGinRouters(routerFunc ...Router) LierGinOption {
+	return func(l *LierGin) {
+		l.SetRouters(routerFunc...)
+	}
+}
+
+// WithLogger set logger
+func WithLogger(logger *log.Logger) LierGinOption {
+	return func(l *LierGin) {
+		l.log = logger
+	}
 }
 
 func (l *LierGin) SetServer(c *Server) {
@@ -38,28 +94,7 @@ func (l *LierGin) SetRouters(routerFunc ...Router) {
 	l.registerRouterFunc = append(l.registerRouterFunc, routerFunc...)
 }
 
-func (l *LierGin) initGin() {
-	// gin初始化
-	router := gin.New()
-
-	if l.server == nil {
-		l.SetServer(NewServer(WithServerAddr(fmt.Sprintf("%s:%d", LOCALHOST, PORT8080))))
-	}
-
-	if len(l.registerRouterFunc) > 0 {
-		for _, f := range l.registerRouterFunc {
-			f(router)
-		}
-	} else {
-		HttpPing(router)
-		httpSelfIntroduction(router)
-	}
-
-	l.server.Handler = router
-}
-
 func (l *LierGin) Start() error {
-	l.initGin()
 	return l.server.ListenAndServe()
 }
 
@@ -69,7 +104,7 @@ func (l *LierGin) Stop() {
 	defer cancel()
 	err := l.server.Shutdown(ctx)
 	if err != nil {
-		log.Println(err)
+		l.log.Println(err)
 	}
 }
 

@@ -1,6 +1,9 @@
 package load
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 type Conf struct {
 	Server struct {
@@ -25,9 +28,11 @@ type Conf struct {
 }
 
 func TestGetConf(t *testing.T) {
-	conf, err := GetConf[Conf]("test.yml")
+	var conf Conf
+	err := GetConf[Conf]("test.yml", &conf)
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log(conf)
+	fmt.Printf("%p %+v", &conf, conf)
 }

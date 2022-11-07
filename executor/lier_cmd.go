@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"fmt"
 	"log"
 	"runtime"
 	"strconv"
@@ -24,16 +23,16 @@ type (
 var _ MulServicesProgram = (*LierCmd)(nil)
 
 // NewLierCmd 初始化生成LierCmd
-func NewLierCmd(option *LierCmdConfig) *LierCmd {
+func NewLierCmd(cfg *LierCmdConfig) *LierCmd {
 	return &LierCmd{
-		appName: option.AppName,
-		cmdName: option.CmdName,
-		desc:    option.Desc,
-		version: option.Version,
+		appName: cfg.AppName,
+		cmdName: cfg.CmdName,
+		desc:    cfg.Desc,
+		version: cfg.Version,
 		runTime: time.Now().Format("2006-01-02 15:04:05"),
-		author:  option.Author,
-		service: option.Service,
-		logger:  option.Logger,
+		author:  cfg.Author,
+		service: cfg.Service,
+		logger:  cfg.Logger,
 	}
 }
 
@@ -52,7 +51,6 @@ func (cmd *LierCmd) Start() error {
 
 // Stop 停止
 func (cmd *LierCmd) Stop() {
-	fmt.Println(fmt.Sprintf("%s-%s stoped!", cmd.appName, cmd.cmdName))
 	cmd.Log().Printf("%s-%s stoped!\n", cmd.appName, cmd.cmdName)
 }
 
@@ -86,5 +84,5 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 ├── RunTime    	: ` + cmd.runTime + `
 └───────────────────────────────────────────────────────────────────────────────────────
 `
-	fmt.Println(zeusStrUp + version)
+	cmd.Log().Println(zeusStrUp + version)
 }

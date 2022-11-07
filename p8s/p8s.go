@@ -25,6 +25,6 @@ func ResponseTime() gin.HandlerFunc {
 		c.Next()
 		end := time.Now()
 		latency := end.Sub(begin)
-		responseGauge.WithLabelValues(c.Request.Method, c.Request.URL.Path, fmt.Sprintf("%d", c.Writer.Status())).Set(latency.Seconds())
+		responseGauge.WithLabelValues(c.Request.Method, c.Request.URL.Path, fmt.Sprintf("%d", c.Writer.Status())).Set(float64(latency.Nanoseconds()))
 	}
 }

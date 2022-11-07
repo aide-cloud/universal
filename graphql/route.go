@@ -77,3 +77,13 @@ func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, isDev ...bool
 	}
 	r.POST("/graphql", gin.WrapH(NewHandler(root, content)))
 }
+
+// GinGraphQLHandlerFunc returns a http.HandlerFunc that can be used to serve the GraphiQL IDE.
+func GinGraphQLHandlerFunc() gin.HandlerFunc {
+	return gin.WrapF(NewGraphQLHandlerFunc())
+}
+
+// GinHandler returns a http.Handler that can be used to serve the GraphQL API.
+func GinHandler(root any, content embed.FS) gin.HandlerFunc {
+	return gin.WrapH(NewHandler(root, content))
+}

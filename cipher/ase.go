@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"log"
 )
 
 type (
@@ -16,6 +15,7 @@ type (
 	}
 )
 
+// NewAesCipher 创建一个新的AesCipher
 func NewAesCipher(key, iv string) (*AesCipher, error) {
 	aesExcept := AesCipher{}
 	aesExcept.key = []byte(key)
@@ -25,7 +25,6 @@ func NewAesCipher(key, iv string) (*AesCipher, error) {
 
 	aesExcept.block, err = aes.NewCipher(aesExcept.key)
 	if err != nil {
-		log.Println("aes.NewCipher error: ", err)
 		return nil, err
 	}
 	return &aesExcept, nil

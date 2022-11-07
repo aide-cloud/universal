@@ -25,6 +25,8 @@ type (
 		Charset  string
 		Debug    bool
 	}
+
+	MysqlConfigOption func(*MysqlConfig)
 )
 
 // GetMysqlConnect 获取新的数据库连接
@@ -62,4 +64,62 @@ func GetMysqlConnectSingle(cfg *MysqlConfig) *gorm.DB {
 		return mysqlDB.Debug()
 	}
 	return mysqlDB
+}
+
+// NewMysqlConfig 创建数据库配置
+func NewMysqlConfig(opts ...MysqlConfigOption) *MysqlConfig {
+	cfg := &MysqlConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	return cfg
+}
+
+// WithMysqlUser 设置数据库用户名
+func WithMysqlUser(user string) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.User = user
+	}
+}
+
+// WithMysqlPassword 设置数据库密码
+func WithMysqlPassword(password string) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.Password = password
+	}
+}
+
+// WithMysqlAddr 设置数据库地址
+func WithMysqlAddr(addr string) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.Addr = addr
+	}
+}
+
+// WithMysqlPort 设置数据库端口
+func WithMysqlPort(port uint) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.Port = port
+	}
+}
+
+// WithMysqlDBName 设置数据库名
+func WithMysqlDBName(dbName string) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.DBName = dbName
+	}
+}
+
+// WithMysqlCharset 设置数据库字符集
+func WithMysqlCharset(charset string) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.Charset = charset
+	}
+}
+
+// WithMysqlDebug 设置数据库调试模式
+func WithMysqlDebug(debug bool) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.Debug = debug
+	}
 }

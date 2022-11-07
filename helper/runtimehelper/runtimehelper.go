@@ -7,51 +7,53 @@ import (
 )
 
 type (
-	// RecoverOption is the option for Recover.
-	RecoverOption struct {
-		log      *log.Logger
-		callback func(error)
+	// RecoverConfig is the option for Recover.
+	RecoverConfig struct {
+		Log      *log.Logger
+		Callback func(error)
 	}
 
-	RecoverOptionFunc func(*RecoverOption)
+	RecoverOption func(*RecoverConfig)
 )
 
 // NewRecoverOption returns a new RecoverOption.
-func NewRecoverOption(options ...RecoverOptionFunc) *RecoverOption {
-	rec := &RecoverOption{
-		log: log.Default(),
-	}
+func NewRecoverOption(options ...RecoverOption) *RecoverConfig {
+	rec := &RecoverConfig{}
 
 	for _, option := range options {
 		option(rec)
+	}
+
+	if rec.Log == nil {
+		WithLog(log.Default())(rec)
 	}
 
 	return rec
 }
 
 // WithLog sets the log.
-func WithLog(log *log.Logger) RecoverOptionFunc {
-	return func(rec *RecoverOption) {
-		rec.log = log
+func WithLog(log *log.Logger) RecoverOption {
+	return func(rec *RecoverConfig) {
+		rec.Log = log
 	}
 }
 
 // WithCallback sets the callback.
-func WithCallback(callback func(error)) RecoverOptionFunc {
-	return func(rec *RecoverOption) {
-		rec.callback = callback
+func WithCallback(callback func(error)) RecoverOption {
+	return func(rec *RecoverConfig) {
+		rec.Callback = callback
 	}
 }
 
-func Recover(msg string, options *RecoverOption) {
-	if err := recover(); err != nil && options != nil {
+func Recover(msg string, cfg *RecoverConfig) {
+	if err := recover(); err != nil && cfg != nil {
 		recoverErr := errors.New(fmt.Sprintf("%s: %v", msg, err))
-		if options.log != nil {
-			options.log.Println(recoverErr)
+		if cfg.Log != nil {
+			cfg.Log.Println(recoverErr)
 		}
 
-		if options.callback != nil {
-			options.callback(recoverErr)
+		if cfg.Callback != nil {
+			cfg.Callback(recoverErr)
 		}
 	}
 }

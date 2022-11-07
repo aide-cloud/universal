@@ -47,12 +47,6 @@ type (
 		Qos      byte   // 服务质量
 		Retained bool   // 是否保留消息
 	}
-
-	SubscribeMessage struct {
-		Topic    string // 主题
-		Qos      byte   // 服务质量
-		Callback func(client mqtt.Client, msg mqtt.Message)
-	}
 )
 
 // NewMqttClientConfig new mqtt client config

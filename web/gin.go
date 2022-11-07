@@ -24,12 +24,13 @@ type (
 		server             *Server
 		registerRouterFunc []Router
 		log                *log.Logger
+		name               string
 	}
 
 	LierGinOption func(*LierGin)
 )
 
-var _ executor.Program = (*LierGin)(nil)
+var _ executor.Service = (*LierGin)(nil)
 
 func NewGin(options ...LierGinOption) *LierGin {
 	l := &LierGin{}

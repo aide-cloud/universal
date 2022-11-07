@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"log"
 	"runtime"
 	"strconv"
 	"time"
@@ -16,8 +17,11 @@ type (
 		desc    string
 		author  string
 		service []Service
+		logger  *log.Logger
 	}
 )
+
+var _ MulServicesProgram = (*LierCmd)(nil)
 
 // NewLierCmd 初始化生成LierCmd
 func NewLierCmd(option *LierCmdOption) *LierCmd {
@@ -28,11 +32,16 @@ func NewLierCmd(option *LierCmdOption) *LierCmd {
 		version: option.Version,
 		runTime: time.Now().Format("2006-01-02 15:04:05"),
 		author:  option.Author,
+		service: option.Service,
+		logger:  option.Logger,
 	}
 }
 
-func (cmd *LierCmd) SetService(service ...Service) {
-	cmd.service = service
+func (cmd *LierCmd) Log() *log.Logger {
+	if cmd.logger == nil {
+		cmd.logger = log.New(log.Writer(), cmd.appName+"-"+cmd.cmdName+" ", log.Flags())
+	}
+	return cmd.logger
 }
 
 // Start 启动

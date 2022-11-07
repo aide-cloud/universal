@@ -1,95 +1,95 @@
 package executor
 
 import (
-	"github.com/aide-cloud/universal/helper/runtimehelper"
-	"log"
+	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"reflect"
-	"sync"
 	"syscall"
 )
 
-// ctrlC 捕获ctrl-c的控制器
-type ctrlC struct {
-	starts       Starter
-	stops        Stopper
-	mulServices  MulServices
-	servicesLock sync.RWMutex
-}
+type (
+	// CtrlC 捕获ctrl-c的控制器
+	CtrlC struct {
+		program MulServicesProgram
+	}
 
-// newCtrlC 初始化生成ctrlC
-func newCtrlC() *ctrlC {
-	return &ctrlC{}
-}
+	CtrlCOption func(*CtrlC)
+)
 
-// setStarter 设置开始方法
-func (c *ctrlC) setStarter(s Starter) *ctrlC {
-	c.starts = s
+// NewCtrlC 初始化生成CtrlC
+func NewCtrlC(options ...CtrlCOption) *CtrlC {
+	c := &CtrlC{}
+
+	for _, option := range options {
+		option(c)
+	}
+
 	return c
 }
 
-// setStopper 设置结束方法
-func (c *ctrlC) setStopper(s Stopper) *ctrlC {
-	c.stops = s
-	return c
-}
-
-// setMulServices 设置注册多服务的方法
-func (c *ctrlC) setMulServices(m MulServices) *ctrlC {
-	c.mulServices = m
-	return c
+// WithProgram 设置程序
+func WithProgram(program MulServicesProgram) CtrlCOption {
+	return func(c *CtrlC) {
+		c.program = program
+	}
 }
 
 // 等待键盘信号
-func (*ctrlC) waitSignals(signals ...os.Signal) {
+func (*CtrlC) waitSignals(signals ...os.Signal) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, signals...)
 	<-c
 }
 
 // 接收到kill信号
-func (c *ctrlC) waitKill() {
+func (c *CtrlC) waitKill() {
 	c.waitSignals(os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 }
 
-// run 开始运行程序，遇到os.Interrupt停止
-func (c *ctrlC) run() {
+// Run 开始运行程序，遇到os.Interrupt停止
+func (c *CtrlC) Run() {
+	if reflect.ValueOf(c.program).IsNil() {
+		return
+	}
 	go func() {
-		if reflect.ValueOf(c.starts).IsNil() {
+		if reflect.ValueOf(c.program.Start).IsNil() {
 			return
 		}
 		// 启动前置服务
-		if err := c.starts.Start(); err != nil {
+		if err := c.program.Start(); err != nil {
 			panic(err)
 		}
 
 		// 启动程序内部的服务列表
-		if c.mulServices != nil {
-			servicesSlice := c.mulServices.ServicesRegistration()
-			for index := range servicesSlice {
-				go func(index int) {
-					runtimehelper.Recover("service start panic")
-					err := servicesSlice[index].Start()
-					if err != nil {
-						log.Println(err)
-					}
-				}(index)
-			}
-		}
+		c.startMulServices()
 	}()
 	c.waitKill()
 	c.stopMulServices()
 
-	if reflect.ValueOf(c.stops).IsNil() {
+	if reflect.ValueOf(c.program.Stop).IsNil() {
 		return
 	}
-	c.stops.Stop()
+	c.program.Stop()
 }
 
 // 停止应用子服务
-func (c *ctrlC) stopMulServices() {
-	servicesSlice := c.mulServices.ServicesRegistration()
+func (c *CtrlC) startMulServices() {
+	servicesSlice := c.program.ServicesRegistration()
+	eg := new(errgroup.Group)
+	for _, service := range servicesSlice {
+		eg.Go(func() error {
+			return service.Start()
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		c.program.Log().Printf("service error: %s", err.Error())
+	}
+}
+
+// 停止应用子服务
+func (c *CtrlC) stopMulServices() {
+	servicesSlice := c.program.ServicesRegistration()
 	for _, service := range servicesSlice {
 		service.Stop()
 	}

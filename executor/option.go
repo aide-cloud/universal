@@ -1,5 +1,7 @@
 package executor
 
+import "log"
+
 type (
 	// LierCmdOption 选项
 	LierCmdOption struct {
@@ -13,6 +15,9 @@ type (
 		Desc string
 		// Author 作者
 		Author string
+
+		Service []Service
+		Logger  *log.Logger
 	}
 
 	LierCmdOptionFunc func(LierCmdOption *LierCmdOption)
@@ -25,6 +30,20 @@ func NewLierCmdOption(opts ...LierCmdOptionFunc) *LierCmdOption {
 		opt(option)
 	}
 	return option
+}
+
+// WithServices 设置服务
+func WithServices(services ...Service) LierCmdOptionFunc {
+	return func(lierCmdOption *LierCmdOption) {
+		lierCmdOption.Service = append(lierCmdOption.Service, services...)
+	}
+}
+
+// WithLogger 设置日志
+func WithLogger(logger *log.Logger) LierCmdOptionFunc {
+	return func(lierCmdOption *LierCmdOption) {
+		lierCmdOption.Logger = logger
+	}
 }
 
 // WithVersion 设置版本号

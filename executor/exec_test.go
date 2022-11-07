@@ -12,14 +12,21 @@ func TestName(t *testing.T) {
 		Desc:    "test-cmd-desc",
 		Version: "v1.0.0",
 		Author:  "biao.hu",
+		Service: []Service{newtTestServer()},
 	})
-	lierCmd.SetService(newtTestServer())
+
 	ExecMulSerProgram(lierCmd)
 }
 
 func TestOption(t *testing.T) {
-	lierCmd := NewLierCmd(NewLierCmdOption(WithCmdName("test-cmd-option"), WithDesc("test-cmd-desc"), WithVersion("v1.0.0"), WithAuthor("biao.hu"), WithAppName("test-APP")))
-	lierCmd.SetService(newtTestServer())
+	lierCmd := NewLierCmd(
+		NewLierCmdOption(
+			WithCmdName("test-cmd-option"),
+			WithDesc("test-cmd-desc"),
+			WithVersion("v1.0.0"),
+			WithServices(newtTestServer()),
+			WithAuthor("biao.hu"),
+			WithAppName("test-APP")))
 	ExecMulSerProgram(lierCmd)
 }
 

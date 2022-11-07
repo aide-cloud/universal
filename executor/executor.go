@@ -1,5 +1,7 @@
 package executor
 
+import "log"
+
 type (
 	// Service 完整的服务接口
 	Service interface {
@@ -14,6 +16,11 @@ type (
 	// Stopper 结束方法的接口
 	Stopper interface {
 		Stop()
+	}
+
+	// Logger 设置日志
+	Logger interface {
+		Log() *log.Logger
 	}
 
 	// MulServices 多服务程序的注册
@@ -32,17 +39,12 @@ type (
 		Starter
 		Stopper
 		MulServices
+		Logger
 	}
 )
 
-var globalExecutor = newCtrlC()
-
 // ExecMulSerProgram 执行多服务程序
 func ExecMulSerProgram(ex MulServicesProgram) {
-	globalExecutor.servicesLock.Lock()
-	globalExecutor.setMulServices(ex)
-	globalExecutor.setStarter(ex)
-	globalExecutor.setStopper(ex)
-	globalExecutor.servicesLock.Unlock()
-	globalExecutor.run()
+	var globalExecutor = NewCtrlC(WithProgram(ex))
+	globalExecutor.Run()
 }

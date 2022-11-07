@@ -28,12 +28,6 @@ type (
 		ServicesRegistration() []Service
 	}
 
-	// Program 完整程序的接口
-	Program interface {
-		Starter
-		Stopper
-	}
-
 	// MulServicesProgram 支持多服务启动及关闭的程序接口
 	MulServicesProgram interface {
 		Starter

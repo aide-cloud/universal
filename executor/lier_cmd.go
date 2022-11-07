@@ -24,7 +24,7 @@ type (
 var _ MulServicesProgram = (*LierCmd)(nil)
 
 // NewLierCmd 初始化生成LierCmd
-func NewLierCmd(option *LierCmdOption) *LierCmd {
+func NewLierCmd(option *LierCmdConfig) *LierCmd {
 	return &LierCmd{
 		appName: option.AppName,
 		cmdName: option.CmdName,

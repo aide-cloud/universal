@@ -4,7 +4,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
-	"reflect"
 	"syscall"
 )
 
@@ -13,25 +12,12 @@ type (
 	CtrlC struct {
 		program MulServicesProgram
 	}
-
-	CtrlCOption func(*CtrlC)
 )
 
 // NewCtrlC 初始化生成CtrlC
-func NewCtrlC(options ...CtrlCOption) *CtrlC {
-	c := &CtrlC{}
-
-	for _, option := range options {
-		option(c)
-	}
-
-	return c
-}
-
-// WithProgram 设置程序
-func WithProgram(program MulServicesProgram) CtrlCOption {
-	return func(c *CtrlC) {
-		c.program = program
+func NewCtrlC(ex MulServicesProgram) *CtrlC {
+	return &CtrlC{
+		program: ex,
 	}
 }
 
@@ -49,13 +35,7 @@ func (c *CtrlC) waitKill() {
 
 // Run 开始运行程序，遇到os.Interrupt停止
 func (c *CtrlC) Run() {
-	if reflect.ValueOf(c.program).IsNil() {
-		return
-	}
 	go func() {
-		if reflect.ValueOf(c.program.Start).IsNil() {
-			return
-		}
 		// 启动前置服务
 		if err := c.program.Start(); err != nil {
 			panic(err)
@@ -67,9 +47,6 @@ func (c *CtrlC) Run() {
 	c.waitKill()
 	c.stopMulServices()
 
-	if reflect.ValueOf(c.program.Stop).IsNil() {
-		return
-	}
 	c.program.Stop()
 }
 

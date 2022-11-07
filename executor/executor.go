@@ -45,6 +45,5 @@ type (
 
 // ExecMulSerProgram 执行多服务程序
 func ExecMulSerProgram(ex MulServicesProgram) {
-	var globalExecutor = NewCtrlC(WithProgram(ex))
-	globalExecutor.Run()
+	NewCtrlC(ex).Run()
 }

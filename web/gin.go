@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"github.com/aide-cloud/universal/executor"
 	"log"
 	"net/http"
 	"time"
@@ -27,6 +28,8 @@ type (
 
 	LierGinOption func(*LierGin)
 )
+
+var _ executor.Program = (*LierGin)(nil)
 
 func NewGin(options ...LierGinOption) *LierGin {
 	l := &LierGin{}

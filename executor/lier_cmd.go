@@ -53,6 +53,7 @@ func (cmd *LierCmd) Start() error {
 // Stop 停止
 func (cmd *LierCmd) Stop() {
 	fmt.Println(fmt.Sprintf("%s-%s stoped!", cmd.appName, cmd.cmdName))
+	cmd.Log().Printf("%s-%s stoped!\n", cmd.appName, cmd.cmdName)
 }
 
 // ServicesRegistration 服务注册

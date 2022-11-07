@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,23 +43,21 @@ func (c *CtrlC) Run() {
 		// 启动程序内部的服务列表
 		c.startMulServices()
 	}()
+
 	c.waitKill()
 	c.stopMulServices()
-
 	c.program.Stop()
 }
 
 // 停止应用子服务
 func (c *CtrlC) startMulServices() {
 	servicesSlice := c.program.ServicesRegistration()
-	eg := new(errgroup.Group)
 	for _, service := range servicesSlice {
-		eg.Go(func() error {
-			return service.Start()
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		c.program.Log().Printf("service error: %s", err.Error())
+		go func(s Service) {
+			if err := s.Start(); err != nil {
+				c.program.Log().Printf("service error: %s", err.Error())
+			}
+		}(service)
 	}
 }
 
@@ -68,6 +65,6 @@ func (c *CtrlC) startMulServices() {
 func (c *CtrlC) stopMulServices() {
 	servicesSlice := c.program.ServicesRegistration()
 	for _, service := range servicesSlice {
-		service.Stop()
+		go service.Stop()
 	}
 }

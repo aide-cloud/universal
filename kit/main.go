@@ -5,20 +5,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 var workerMode = flag.String("w", "help", "worker mode")
 var repo = flag.String("r", "https://github.com/aide-cloud/aide-family-layout.git", "layout repo")
 var repoPath = flag.String("p", "", "repo path")
 var nomod = flag.Bool("n", false, "no mod")
-
-var repoAddIgnores = []string{
-	"README.md", "LICENSE", ".gitignore", "cmd", "configs", "internal", "Makefile", "Dockerfile",
-}
 
 var moduleAddIgnores = []string{
 	"go.mod", "go.sum",
@@ -52,38 +51,84 @@ func runCommand(path, name string, arg ...string) (msg string, err error) {
 	return
 }
 
-// gitClone clones a git repository to the given directory.
-func gitClone(dir, repo string) {
-	// bash -c "git clone repo --depth 1 dir"
-	_, err := runCommand("", "bash", "-c", fmt.Sprintf("git clone %s %s", repo, path.Join("/tmp", dir)))
+// getModuleName 获取本地module名称（go.mod第一行）
+func getModuleName() string {
+	cmd := exec.Command("go", "list", "-m")
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
 	if err != nil {
-		log.Println("git clone failed", err)
+		// 获取运行的根目录
+		dir, _ := os.Getwd()
+		return path.Base(dir)
+	}
+	str := out.String()
+	return str[:len(str)-1]
+}
+
+// gitClone clones a git repository to the given directory.
+func gitClone(filePath, repo string) {
+	dir := path.Join("./", filePath)
+	tmpPath := "tmp"
+
+	var err error
+	// 获取本地module名称（go.mod第一行），用于替换
+	moduleName := getModuleName()
+	if err != nil {
+		log.Println(err, moduleName)
+		return
 	}
 
-	_ = os.Mkdir(path.Join(dir), os.ModePerm)
+	_ = os.RemoveAll(dir)
 
-	// copy dir to current dir
-	// cp repoAddIgnores dir
-	for _, ignore := range repoAddIgnores {
-		_, err = runCommand("", "cp", "-r", path.Join("/tmp", dir, ignore), path.Join("./", dir, ignore))
-		if err != nil {
-			log.Println("cp failed", err)
-		}
+	err = os.MkdirAll(dir, 0755)
+	if err != nil {
+		return
 	}
+
+	err = os.RemoveAll(tmpPath)
+	if err != nil {
+		return
+	}
+
+	err = os.Mkdir(tmpPath, os.ModePerm)
+	if err != nil {
+		_ = os.RemoveAll(path.Base(dir))
+		return
+	}
+
+	// bash -c "git clone repo --depth 1 dir"
+	_, err = runCommand("", "bash", "-c", fmt.Sprintf("git clone %s --depth=1 %s", repo, path.Join(tmpPath, path.Base(dir))))
+	if err != nil {
+		log.Println("创建项目失败")
+		_ = os.RemoveAll(path.Base(dir))
+		_ = os.RemoveAll(tmpPath)
+		return
+	}
+
+	_ = os.RemoveAll(path.Join(tmpPath, path.Base(dir), ".git"))
+
+	_, _ = runCommand("", "cp", "-R", path.Join(tmpPath, path.Base(dir)), path.Dir(dir))
+
+	_ = os.RemoveAll(tmpPath)
 
 	// nomod
 	if !*nomod {
 		for _, ignore := range moduleAddIgnores {
-			_, err = runCommand("", "rm", "-rf", path.Join("./", dir, ignore))
-			if err != nil {
-				log.Println("rm failed", err)
-			}
+			_ = os.Remove(path.Join(dir, ignore))
 		}
 	}
 
-	// rm -rf dir
-	_, err = runCommand("", "rm", "-rf", path.Join("/tmp", dir))
-	if err != nil {
-		log.Println("rm failed", err)
-	}
+	moduleName = strings.ReplaceAll(moduleName, "/", "\\/")
+
+	// 遍历dir下所有文件，替换module名称
+	_ = filepath.Walk(path.Join("./", dir), func(path string, info fs.FileInfo, err error) error {
+		if info == nil || info.IsDir() {
+			return nil
+		}
+		_, _ = runCommand("", "sed", "-i", "", fmt.Sprintf("s/github.com\\/aide-cloud\\/aide-family-layout/%s/g", moduleName), path)
+		return nil
+	})
 }

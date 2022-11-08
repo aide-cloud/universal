@@ -18,6 +18,8 @@ var workerMode = flag.String("w", "help", "worker mode")
 var repo = flag.String("r", "https://github.com/aide-cloud/aide-family-layout.git", "layout repo")
 var repoPath = flag.String("p", "", "repo path")
 var nomod = flag.Bool("n", false, "no mod")
+var version = flag.Bool("v", false, "version")
+var v = "v1.1.3"
 
 var moduleAddIgnores = []string{
 	"go.mod", "go.sum",
@@ -25,6 +27,10 @@ var moduleAddIgnores = []string{
 
 func main() {
 	flag.Parse()
+	if *version {
+		fmt.Println(v)
+		return
+	}
 	switch *workerMode {
 	case "help":
 		flag.Usage()
@@ -75,11 +81,7 @@ func gitClone(filePath, repo string) {
 
 	var err error
 	// 获取本地module名称（go.mod第一行），用于替换
-	moduleName := getModuleName()
-	if err != nil {
-		log.Println(err, moduleName)
-		return
-	}
+	moduleName := path.Join(getModuleName(), dir)
 
 	_ = os.RemoveAll(dir)
 

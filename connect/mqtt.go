@@ -134,7 +134,18 @@ func (m *MQTTClient) AppendTopic(topic string, config TopicConfig) {
 		m.topicSet = make(map[string]TopicConfig)
 	}
 	m.topicSet[topic] = config
-	m.Client.Subscribe(topic, config.Qos, config.Handler)
+}
+
+// AppendTopics append topic
+func (m *MQTTClient) AppendTopics(topics map[string]TopicConfig) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	if m.topicSet == nil {
+		m.topicSet = make(map[string]TopicConfig)
+	}
+	for topic, config := range topics {
+		m.topicSet[topic] = config
+	}
 }
 
 // RemoveTopic remove topic

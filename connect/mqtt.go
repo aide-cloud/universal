@@ -31,7 +31,7 @@ type (
 
 	MQTTClient struct {
 		mqtt.Client
-		Logger   *log.Logger
+		logger   *log.Logger
 		lock     sync.RWMutex
 		topicSet map[string]TopicConfig
 	}
@@ -97,7 +97,7 @@ func newMqttClient(cfg ...*MqttClientConfig) mqtt.Client {
 func NewMQTTClient(cfg *MqttClientConfig, logger *log.Logger) *MQTTClient {
 	cli := &MQTTClient{}
 	cli.Client = newMqttClient(cfg)
-	cli.Logger = logger
+	cli.logger = logger
 	cli.topicSet = make(map[string]TopicConfig)
 	return cli
 }
@@ -112,7 +112,7 @@ func NewTopicConfig(qos byte, Handler mqtt.MessageHandler) TopicConfig {
 // Publish  message
 func (m *MQTTClient) Publish(msg PublishMessage) {
 	if token := m.Client.Publish(msg.Topic, msg.Qos, msg.Retained, msg.Payload); token.Wait() && token.Error() != nil {
-		m.Logger.Printf("publish failed, topic: %s, payload: %s\n", msg.Topic, msg.Payload)
+		m.logger.Printf("publish failed, topic: %s, payload: %s\n", msg.Topic, msg.Payload)
 	}
 }
 
@@ -121,7 +121,7 @@ func (m *MQTTClient) Subscribe() {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	for topic, config := range m.topicSet {
-		m.Logger.Printf("subscribe topic: %s\n", topic)
+		m.logger.Printf("subscribe topic: %s\n", topic)
 		m.Client.Subscribe(topic, config.Qos, config.Handler)
 	}
 }
@@ -134,6 +134,7 @@ func (m *MQTTClient) AppendTopic(topic string, config TopicConfig) {
 		m.topicSet = make(map[string]TopicConfig)
 	}
 	m.topicSet[topic] = config
+	m.Client.Subscribe(topic, config.Qos, config.Handler)
 }
 
 // AppendTopics append topic
@@ -145,6 +146,7 @@ func (m *MQTTClient) AppendTopics(topics map[string]TopicConfig) {
 	}
 	for topic, config := range topics {
 		m.topicSet[topic] = config
+		m.Client.Subscribe(topic, config.Qos, config.Handler)
 	}
 }
 

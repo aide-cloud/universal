@@ -17,7 +17,7 @@ func TestCreateMqttClient(t *testing.T) {
 		t.Log("aide-family-1", "收到消息", string(msg.Payload()))
 	}))
 
-	go cli.Subscribe()
+	cli.Subscribe()
 	time.Sleep(time.Second * 1)
 
 	count := 0

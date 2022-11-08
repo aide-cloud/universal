@@ -29,8 +29,8 @@ func NewRedisConfig(options ...RedisConfigOption) *RedisConfig {
 	return config
 }
 
-// NewRedisDao 连接池
-func NewRedisDao(cfg *RedisConfig) *redis.Client {
+// NewRedisClient 连接池
+func NewRedisClient(cfg *RedisConfig) *redis.Client {
 	client := redis.NewClient(&cfg.Options)
 
 	return client
@@ -40,7 +40,7 @@ func NewRedisDao(cfg *RedisConfig) *redis.Client {
 func NewRedisDaoSingleton(cfg *RedisConfig) *redis.Client {
 	if redisCli == nil {
 		once.Do(func() {
-			redisCli = NewRedisDao(cfg)
+			redisCli = NewRedisClient(cfg)
 		})
 	}
 

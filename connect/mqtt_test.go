@@ -1,14 +1,14 @@
 package connect
 
 import (
+	"github.com/aide-cloud/universal/alog"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"log"
 	"testing"
 	"time"
 )
 
 func TestCreateMqttClient(t *testing.T) {
-	cli := NewMQTTClient(NewDefaultMqttClientConfig(), log.Default())
+	cli := NewMQTTClient(NewDefaultMqttClientConfig(), alog.NewLogger())
 	cli.AppendTopic(ClientPrefix, NewTopicConfig(0, func(client mqtt.Client, msg mqtt.Message) {
 		t.Log(ClientPrefix, "收到消息", string(msg.Payload()))
 	}))

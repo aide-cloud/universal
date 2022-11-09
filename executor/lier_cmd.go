@@ -1,7 +1,8 @@
 package executor
 
 import (
-	"log"
+	"fmt"
+	"github.com/aide-cloud/universal/alog"
 	"runtime"
 	"strconv"
 	"time"
@@ -16,7 +17,7 @@ type (
 		desc    string
 		author  string
 		service []Service
-		logger  *log.Logger
+		logger  alog.Logger
 	}
 )
 
@@ -36,9 +37,9 @@ func NewLierCmd(cfg *LierCmdConfig) *LierCmd {
 	}
 }
 
-func (cmd *LierCmd) Log() *log.Logger {
+func (cmd *LierCmd) Log() alog.Logger {
 	if cmd.logger == nil {
-		cmd.logger = log.New(log.Writer(), cmd.appName+"-"+cmd.cmdName+" ", log.Flags())
+		cmd.logger = alog.NewLogger()
 	}
 	return cmd.logger
 }
@@ -51,7 +52,7 @@ func (cmd *LierCmd) Start() error {
 
 // Stop 停止
 func (cmd *LierCmd) Stop() {
-	cmd.Log().Printf("%s-%s stoped!\n", cmd.appName, cmd.cmdName)
+	cmd.Log().Warn(fmt.Sprintf("%s-%s stoped!\n", cmd.appName, cmd.cmdName))
 }
 
 // ServicesRegistration 服务注册
@@ -84,5 +85,5 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 ├── RunTime    	: ` + cmd.runTime + `
 └───────────────────────────────────────────────────────────────────────────────────────
 `
-	cmd.Log().Println(zeusStrUp + version)
+	fmt.Println(zeusStrUp + version)
 }

@@ -3,13 +3,13 @@ package runtimehelper
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/aide-cloud/universal/alog"
 )
 
 type (
 	// RecoverConfig is the option for Recover.
 	RecoverConfig struct {
-		Log      *log.Logger
+		Log      alog.Logger
 		Callback func(error)
 	}
 
@@ -25,14 +25,14 @@ func NewRecoverOption(options ...RecoverOption) *RecoverConfig {
 	}
 
 	if rec.Log == nil {
-		WithLog(log.Default())(rec)
+		WithLog(alog.NewLogger())(rec)
 	}
 
 	return rec
 }
 
 // WithLog sets the log.
-func WithLog(log *log.Logger) RecoverOption {
+func WithLog(log alog.Logger) RecoverOption {
 	return func(rec *RecoverConfig) {
 		rec.Log = log
 	}
@@ -49,7 +49,7 @@ func Recover(msg string, cfg *RecoverConfig) {
 	if err := recover(); err != nil && cfg != nil {
 		recoverErr := errors.New(fmt.Sprintf("%s: %v", msg, err))
 		if cfg.Log != nil {
-			cfg.Log.Println(recoverErr)
+			cfg.Log.Error("panic recovered", alog.Arg{Key: "error", Value: recoverErr})
 		}
 
 		if cfg.Callback != nil {

@@ -1,12 +1,15 @@
 package executor
 
-import "log"
+import (
+	"github.com/aide-cloud/universal/alog"
+)
 
 type (
 	// Service 完整的服务接口
 	Service interface {
 		Starter
 		Stopper
+		Name
 	}
 
 	// Starter 开始方法的接口
@@ -18,9 +21,14 @@ type (
 		Stop()
 	}
 
+	// Name 服务名称
+	Name interface {
+		Name() string
+	}
+
 	// Logger 设置日志
 	Logger interface {
-		Log() *log.Logger
+		Log() alog.Logger
 	}
 
 	// MulServices 多服务程序的注册

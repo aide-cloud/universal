@@ -1,6 +1,8 @@
 package executor
 
-import "log"
+import (
+	"github.com/aide-cloud/universal/alog"
+)
 
 type (
 	// LierCmdConfig 选项
@@ -17,7 +19,7 @@ type (
 		Author string
 
 		Service []Service
-		Logger  *log.Logger
+		Logger  alog.Logger
 	}
 
 	LierCmdConfigFunc func(LierCmdConfig *LierCmdConfig)
@@ -40,7 +42,7 @@ func WithServices(services ...Service) LierCmdConfigFunc {
 }
 
 // WithLogger 设置日志
-func WithLogger(logger *log.Logger) LierCmdConfigFunc {
+func WithLogger(logger alog.Logger) LierCmdConfigFunc {
 	return func(LierCmdConfig *LierCmdConfig) {
 		LierCmdConfig.Logger = logger
 	}

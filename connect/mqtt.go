@@ -2,8 +2,8 @@ package connect
 
 import (
 	"fmt"
+	"github.com/aide-cloud/universal/alog"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -31,7 +31,7 @@ type (
 
 	MQTTClient struct {
 		mqtt.Client
-		logger   *log.Logger
+		logger   alog.Logger
 		lock     sync.RWMutex
 		topicSet map[string]TopicConfig
 	}
@@ -88,13 +88,13 @@ func newMqttClient(cfg ...*MqttClientConfig) mqtt.Client {
 	token := client.Connect()
 	// 如果连接失败，则终止程序
 	if token.WaitTimeout(3*time.Second) && token.Error() != nil {
-		log.Fatal(token.Error())
+		panic(token.Error())
 	}
 	return client
 }
 
 // NewMQTTClient create mqtt client
-func NewMQTTClient(cfg *MqttClientConfig, logger *log.Logger) *MQTTClient {
+func NewMQTTClient(cfg *MqttClientConfig, logger alog.Logger) *MQTTClient {
 	cli := &MQTTClient{}
 	cli.Client = newMqttClient(cfg)
 	cli.logger = logger
@@ -112,7 +112,7 @@ func NewTopicConfig(qos byte, Handler mqtt.MessageHandler) TopicConfig {
 // Publish  message
 func (m *MQTTClient) Publish(msg PublishMessage) {
 	if token := m.Client.Publish(msg.Topic, msg.Qos, msg.Retained, msg.Payload); token.Wait() && token.Error() != nil {
-		m.logger.Printf("publish failed, topic: %s, payload: %s\n", msg.Topic, msg.Payload)
+		m.logger.Warn("publish failed, topic: %s, payload: %s\n", alog.Arg{Key: "topic", Value: msg.Topic}, alog.Arg{Key: "payload", Value: msg.Payload})
 	}
 }
 
@@ -121,7 +121,7 @@ func (m *MQTTClient) Subscribe() {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	for topic, config := range m.topicSet {
-		m.logger.Printf("subscribe topic: %s\n", topic)
+		m.logger.Info("subscribe topic: %s\n", alog.Arg{Key: "topic", Value: topic})
 		m.Client.Subscribe(topic, config.Qos, config.Handler)
 	}
 }

@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"github.com/aide-cloud/universal/alog"
 	"testing"
 	"time"
 )
@@ -31,7 +32,7 @@ func TestOption(t *testing.T) {
 }
 
 func TestCtrlC(t *testing.T) {
-	NewCtrlC(NewLierCmd(NewLierCmdConfig())).Run()
+	NewCtrlC(NewLierCmd(NewLierCmdConfig(WithLogger(alog.NewLogger(alog.WithOutputType(alog.OutputJsonType)))))).Run()
 }
 
 type MyServer struct {
@@ -47,6 +48,7 @@ func (m MyServer) Start() error {
 		case <-tick.C:
 			println("test", count)
 			count++
+			//return errors.New("test error")
 		case <-m.ch:
 			println("test stop")
 			return nil
@@ -56,6 +58,10 @@ func (m MyServer) Start() error {
 
 func (m MyServer) Stop() {
 	m.ch <- true
+}
+
+func (m *MyServer) Name() string {
+	return "test"
 }
 
 func newtTestServer() *MyServer {

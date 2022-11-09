@@ -2,11 +2,11 @@ package graphql
 
 import (
 	"embed"
+	"fmt"
 	"github.com/aide-cloud/universal/basic/assert"
 	"github.com/gin-gonic/gin"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	"log"
 	"net/http"
 )
 
@@ -52,8 +52,7 @@ func NewGraphQLHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write(page)
 		if err != nil {
-			log.Printf("write page error: %s\n", err)
-			return
+			panic(fmt.Sprintf("write page error: %s\n", err))
 		}
 	}
 }
@@ -61,11 +60,11 @@ func NewGraphQLHandlerFunc() http.HandlerFunc {
 func NewHandler(root any, content embed.FS) *relay.Handler {
 	// 判断root是否为结构体指针或者结构体指针
 	if !assert.IsStruct(root) && !assert.IsStructPtr(root) {
-		log.Fatal("root must be a struct pointer")
+		panic("root must be a struct pointer")
 	}
 	s, err := String(content)
 	if err != nil {
-		log.Fatalf("reading embedded schema contents: %s", err)
+		panic(fmt.Sprintf("reading embedded schema contents: %s", err))
 	}
 
 	return &relay.Handler{Schema: graphql.MustParseSchema(s, root)}

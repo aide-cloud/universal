@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"github.com/aide-cloud/universal/alog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -54,8 +55,9 @@ func (c *CtrlC) startMulServices() {
 	servicesSlice := c.program.ServicesRegistration()
 	for _, service := range servicesSlice {
 		go func(s Service) {
+			c.program.Log().Info("service starting", alog.Arg{Key: "service", Value: s.Name()})
 			if err := s.Start(); err != nil {
-				c.program.Log().Printf("service error: %s", err.Error())
+				c.program.Log().Error("service start error", alog.Arg{Key: "service", Value: s.Name()}, alog.Arg{Key: "error", Value: err})
 			}
 		}(service)
 	}

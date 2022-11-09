@@ -7,7 +7,7 @@ import (
 
 func TestLog_Debug(t *testing.T) {
 	myLog := NewLogger(
-		//WithOutputType(OutputJsonType),
+		WithOutputType(OutputJsonType),
 		//WithFileName("log/test.log"),
 		WithTimeEncoder(zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000000")),
 		WithOutputMode(OutputModeStdout),

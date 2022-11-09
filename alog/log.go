@@ -9,51 +9,50 @@ import (
 
 type (
 	Logger interface {
-		// Debug uses fmt.Sprint to construct and log a message.
+		// Debug 日志级别为Debug
 		Debug(msg string, args ...Arg)
-		// Info uses fmt.Sprint to construct and log a message.
+		// Info 日志级别为Info
 		Info(msg string, args ...Arg)
-		// Warn uses fmt.Sprint to construct and log a message.
+		// Warn 日志级别为Warn
 		Warn(msg string, args ...Arg)
-		// Error uses fmt.Sprint to construct and log a message.
+		// Error 日志级别为Error
 		Error(msg string, args ...Arg)
 	}
 
-	Level      string
-	OutputType uint8
-	OutputMode uint8
+	Level      string // 日志级别
+	OutputType uint8  // 输出类型
+	OutputMode uint8  // 输出模式
 
-	Option func(*Log)
+	Option func(*Log) // 日志配置选项
 
 	Arg struct {
-		Key   string
-		Value any
+		Key   string // 日志字段名
+		Value any    // 日志字段值
 	}
 
 	FileLogWriterConfig struct {
-		FileName   string
-		MaxSize    int
-		MaxBackups int
-		MaxAge     int
-		Compress   bool
-		LocalTime  bool
+		FileName   string // 日志文件名
+		MaxSize    int    // 每个日志文件保存的最大尺寸 单位：M
+		MaxBackups int    // 日志文件最多保存多少个备份
+		MaxAge     int    // 文件最多保存多少天
+		Compress   bool   // 是否压缩
+		LocalTime  bool   // 是否使用本地时间
 	}
 
 	Log struct {
-		FileLogWriterConfig
-		logger      *zap.Logger
-		level       Level
-		timeEncoder zapcore.TimeEncoder
-		outputType  OutputType // 输出类型 1:JSON 2:Console
-		outMode     OutputMode // 日志输出方式 1. file 2. console 3. file+console
+		FileLogWriterConfig                     // 文件日志配置
+		logger              *zap.Logger         // zap日志对象
+		timeEncoder         zapcore.TimeEncoder // 时间编码器
+		outputType          OutputType          // 输出类型 1:JSON 2:Console
+		outMode             OutputMode          // 日志输出方式 1. file 2. console 3. file+console
 	}
 )
 
-func (l Log) Debug(msg string, args ...Arg) {
+func (l *Log) Debug(msg string, args ...Arg) {
 	l.logger.Debug(msg, buildLoggerArgs(args)...)
 }
 
-func (l Log) Info(msg string, args ...Arg) {
+func (l *Log) Info(msg string, args ...Arg) {
 	l.logger.Info(msg, buildLoggerArgs(args)...)
 }
 
@@ -61,9 +60,8 @@ func (l Log) Warn(msg string, args ...Arg) {
 	l.logger.Warn(msg, buildLoggerArgs(args)...)
 }
 
-func (l Log) Error(msg string, args ...Arg) {
-	// 打印堆栈信息
-	l.logger.Error(msg, buildLoggerArgs(args)...)
+func (l *Log) Error(msg string, args ...Arg) {
+	l.logger.WithOptions(zap.AddStacktrace(zapcore.ErrorLevel)).Error(msg, buildLoggerArgs(args)...)
 }
 
 var _ Logger = (*Log)(nil)
@@ -108,14 +106,19 @@ func anyToZapField(key string, value any) zap.Field {
 }
 
 func getCallerInfoForLog() (callerFields []zap.Field) {
-
-	pc, file, line, ok := runtime.Caller(2) // 回溯两层，拿到写日志的调用方的函数信息
+	pc, file, line, ok := runtime.Caller(3) // 回溯3层，拿到写日志的调用方的函数信息
 	if !ok {
 		return
 	}
 	funcName := runtime.FuncForPC(pc).Name()
 	funcName = path.Base(funcName) //Base函数返回路径的最后一个元素，只保留函数名
+	runtime.Callers(3, []uintptr{pc})
 
-	callerFields = append(callerFields, zap.String("func", funcName), zap.String("file", file), zap.Int("line", line))
+	callerFields = append(
+		callerFields,
+		zap.String("func", funcName),
+		zap.String("file", file),
+		zap.Int("line", line),
+	)
 	return
 }

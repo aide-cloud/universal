@@ -2,70 +2,63 @@ package alog
 
 import "go.uber.org/zap/zapcore"
 
-// WithLevel set log level
-func WithLevel(level Level) Option {
-	return func(l *Log) {
-		l.level = level
-	}
-}
-
-// WithFileName set log file name
+// WithFileName 设置日志文件名，不包含路径，只有在输出方式为文件或者控制台+文件时有效
 func WithFileName(fileName string) Option {
 	return func(l *Log) {
 		l.FileName = fileName
 	}
 }
 
-// WithMaxSize set log file max size
+// WithMaxSize 设置日志文件最大尺寸，单位MB
 func WithMaxSize(maxSize int) Option {
 	return func(l *Log) {
 		l.MaxSize = maxSize
 	}
 }
 
-// WithMaxBackups set log file max backups
+// WithMaxBackups 设置日志文件最大备份数
 func WithMaxBackups(maxBackups int) Option {
 	return func(l *Log) {
 		l.MaxBackups = maxBackups
 	}
 }
 
-// WithMaxAge set log file max age
+// WithMaxAge 设置日志文件最大保存天数
 func WithMaxAge(maxAge int) Option {
 	return func(l *Log) {
 		l.MaxAge = maxAge
 	}
 }
 
-// WithCompress set log file compress
+// WithCompress 设置日志文件是否压缩
 func WithCompress(compress bool) Option {
 	return func(l *Log) {
 		l.Compress = compress
 	}
 }
 
-// WithLocalTime set log file local time
+// WithLocalTime 设置日志文件是否使用本地时间
 func WithLocalTime(localTime bool) Option {
 	return func(l *Log) {
 		l.LocalTime = localTime
 	}
 }
 
-// WithOutputMode set log output mode
+// WithOutputMode 设置日志输出方式，控制台、文件、控制台+文件
 func WithOutputMode(mode OutputMode) Option {
 	return func(l *Log) {
 		l.outMode = mode
 	}
 }
 
-// WithOutputType set log output type
+// WithOutputType 设置日志输出类型，JSON或者Console
 func WithOutputType(outputType OutputType) Option {
 	return func(l *Log) {
 		l.outputType = outputType
 	}
 }
 
-// WithTimeEncoder set log time encoder
+// WithTimeEncoder 设置日志时间格式，支持自定义格式
 func WithTimeEncoder(timeEncoder zapcore.TimeEncoder) Option {
 	return func(l *Log) {
 		l.timeEncoder = timeEncoder

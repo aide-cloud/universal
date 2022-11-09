@@ -8,27 +8,35 @@ import (
 )
 
 const (
-	OutputModeStdout OutputMode = iota + 1
-	OutputModeFile
-	OutputModeStdoutAndFile
+	OutputModeStdout        OutputMode = iota + 1 // 输出到控制台
+	OutputModeFile                                // 输出到文件
+	OutputModeStdoutAndFile                       // 同时输出到控制台和文件
 )
 
 const (
-	DefaultLogFileName   = "log/a-log.log"
-	DefaultLogMaxSize    = 1024
-	DefaultLogMaxAge     = 1
-	DefaultLogMaxBackups = 5
-	DefaultLogCompress   = false
+	DefaultLogFileName   = "log/a-log.log" // 默认日志文件名
+	DefaultLogMaxSize    = 1024            // 默认日志文件最大大小
+	DefaultLogMaxAge     = 1               // 默认日志文件最大保存天数
+	DefaultLogMaxBackups = 5               // 默认日志文件最多保存多少个备份
+	DefaultLogCompress   = false           // 默认日志文件是否压缩
 )
 
 const (
-	OutputJsonType OutputType = iota + 1
-	OutputConsoleType
+	OutputJsonType    OutputType = iota + 1 // 输出JSON格式
+	OutputConsoleType                       // 输出控制台格式
 )
 
-// NewLogger create a new logger
+const (
+	LogLevelDebug Level = "debug"
+	LogLevelInfo  Level = "info"
+	LogLevelWarn  Level = "warn"
+	LogLevelError Level = "error"
+)
+
+// NewLogger 创建日志记录器
 func NewLogger(options ...Option) Logger {
 	aLog := Log{}
+
 	// 初始化日志配置项
 	for _, option := range options {
 		option(&aLog)
@@ -73,11 +81,16 @@ func NewLogger(options ...Option) Logger {
 		}
 	}
 
-	aLog.logger = zap.New(zapcore.NewTee(cores...), zap.AddCaller(), zap.AddCallerSkip(1))
+	aLog.logger = zap.New(
+		zapcore.NewTee(cores...),
+		zap.AddCaller(),
+		zap.AddCallerSkip(1),
+	)
 
 	return &aLog
 }
 
+// getFileLogWriter 获取文件日志写入器
 func getFileLogWriter(config FileLogWriterConfig) (writeSyncer zapcore.WriteSyncer) {
 	var cfg = FileLogWriterConfig{
 		FileName:   DefaultLogFileName,
@@ -110,9 +123,9 @@ func getFileLogWriter(config FileLogWriterConfig) (writeSyncer zapcore.WriteSync
 	// 使用 lumberjack 实现 log rotate
 	lumberJackLogger := &lumberjack.Logger{
 		Filename:   cfg.FileName,
-		MaxSize:    cfg.MaxSize,    // 单个文件最大100M
-		MaxBackups: cfg.MaxBackups, // 多于 60 个日志文件后，清理较旧的日志
-		MaxAge:     cfg.MaxAge,     // 一天一切割
+		MaxSize:    cfg.MaxSize,    // 单个文件最大大小
+		MaxBackups: cfg.MaxBackups, // 最多保留多少个备份
+		MaxAge:     cfg.MaxAge,     // 文件最多保存多少天
 		Compress:   cfg.Compress,   // 是否压缩
 		LocalTime:  cfg.LocalTime,  // 使用本地时间
 	}

@@ -3,8 +3,9 @@ package web
 import (
 	"context"
 	"fmt"
+	"github.com/aide-cloud/universal/alog"
 	"github.com/aide-cloud/universal/executor"
-	"log"
+	"github.com/aide-cloud/universal/web/middleware"
 	"net/http"
 	"time"
 
@@ -23,7 +24,7 @@ type (
 		engine             *gin.Engine
 		server             *Server
 		registerRouterFunc []Router
-		log                *log.Logger
+		log                alog.Logger
 		name               string
 	}
 
@@ -39,12 +40,11 @@ func NewGin(options ...LierGinOption) *LierGin {
 	}
 
 	if l.log == nil {
-		l.log = log.Default()
-		WithLogger(log.Default())(l)
+		WithLogger(alog.NewLogger())(l)
 	}
 
 	if l.engine == nil {
-		WithEngine(gin.Default())(l)
+		WithEngine(gin.New())(l)
 	}
 
 	if l.server == nil {
@@ -55,8 +55,12 @@ func NewGin(options ...LierGinOption) *LierGin {
 		l.SetRouters(HttpPing, httpSelfIntroduction)
 	}
 
+	r := l.engine
+
+	r.Use(middleware.Logger(l.log))
+
 	for _, f := range l.registerRouterFunc {
-		f(l.engine)
+		f(r)
 	}
 
 	l.server.Handler = l.engine
@@ -66,8 +70,8 @@ func NewGin(options ...LierGinOption) *LierGin {
 
 // WithEngine set server handler
 func WithEngine(engine *gin.Engine) LierGinOption {
-	return func(s *LierGin) {
-		s.engine = engine
+	return func(l *LierGin) {
+		l.engine = engine
 	}
 }
 
@@ -84,7 +88,7 @@ func WithGinRouters(routerFunc ...Router) LierGinOption {
 }
 
 // WithLogger set logger
-func WithLogger(logger *log.Logger) LierGinOption {
+func WithLogger(logger alog.Logger) LierGinOption {
 	return func(l *LierGin) {
 		l.log = logger
 	}
@@ -99,6 +103,7 @@ func (l *LierGin) SetRouters(routerFunc ...Router) {
 }
 
 func (l *LierGin) Start() error {
+	l.log.Info(fmt.Sprintf("listen addr: %s", "http://"+l.server.Addr))
 	return l.server.ListenAndServe()
 }
 
@@ -108,7 +113,7 @@ func (l *LierGin) Stop() {
 	defer cancel()
 	err := l.server.Shutdown(ctx)
 	if err != nil {
-		l.log.Println(err)
+		l.log.Error("http server shutdown error: ", alog.Arg{Key: "error", Value: err})
 	}
 }
 

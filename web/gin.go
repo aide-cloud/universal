@@ -18,7 +18,7 @@ const (
 )
 
 type (
-	Router func(router *gin.Engine)
+	Router func(router *gin.Engine, logger alog.Logger)
 
 	LierGin struct {
 		engine             *gin.Engine
@@ -64,7 +64,7 @@ func NewGin(options ...LierGinOption) *LierGin {
 	r.Use(middleware.Logger(l.log))
 
 	for _, f := range l.registerRouterFunc {
-		f(r)
+		f(r, l.log)
 	}
 
 	l.server.Handler = l.engine
@@ -114,7 +114,7 @@ func (l *LierGin) SetRouters(routerFunc ...Router) {
 }
 
 func (l *LierGin) Start() error {
-	l.log.Info(fmt.Sprintf("listen addr: %s", "http://"+l.server.Addr))
+	l.log.Info(fmt.Sprintf("listen addr: http://%s", l.server.Addr))
 	return l.server.ListenAndServe()
 }
 
@@ -129,7 +129,7 @@ func (l *LierGin) Stop() {
 }
 
 // HttpPing router ping
-func HttpPing(router *gin.Engine) {
+func HttpPing(router *gin.Engine, _ alog.Logger) {
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusOK)
 	})
@@ -143,7 +143,7 @@ func HttpCheckHealth(router *gin.Engine) {
 }
 
 // httpSelfIntroduction 自我介绍
-func httpSelfIntroduction(router *gin.Engine) {
+func httpSelfIntroduction(router *gin.Engine, _ alog.Logger) {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code":    http.StatusOK,

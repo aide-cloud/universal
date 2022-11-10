@@ -45,15 +45,19 @@ func WithCallback(callback func(error)) RecoverOption {
 	}
 }
 
-func Recover(msg string, cfg *RecoverConfig) {
+func Recover(msg string, cfg ...*RecoverConfig) {
 	if err := recover(); err != nil && cfg != nil {
 		recoverErr := errors.New(fmt.Sprintf("%s: %v", msg, err))
-		if cfg.Log != nil {
-			cfg.Log.Error("panic recovered", alog.Arg{Key: "error", Value: recoverErr})
-		}
+		if len(cfg) > 0 {
+			if cfg[0].Log != nil {
+				cfg[0].Log.Error("panic recovered", alog.Arg{Key: "error", Value: recoverErr})
+			}
 
-		if cfg.Callback != nil {
-			cfg.Callback(recoverErr)
+			if cfg[0].Callback != nil {
+				cfg[0].Callback(recoverErr)
+			}
+			return
 		}
+		alog.NewLogger().Error("panic recovered", alog.Arg{Key: "error", Value: recoverErr})
 	}
 }

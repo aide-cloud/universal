@@ -49,31 +49,34 @@ type (
 )
 
 func (l *Log) Debug(msg string, args ...Arg) {
-	l.logger.Debug(msg, buildLoggerArgs(args)...)
+	l.logger.Debug(msg, buildLoggerArgs(args, LogLevelDebug)...)
 }
 
 func (l *Log) Info(msg string, args ...Arg) {
-	l.logger.Info(msg, buildLoggerArgs(args)...)
+	l.logger.Info(msg, buildLoggerArgs(args, LogLevelInfo)...)
 }
 
 func (l Log) Warn(msg string, args ...Arg) {
-	l.logger.Warn(msg, buildLoggerArgs(args)...)
+	l.logger.Warn(msg, buildLoggerArgs(args, LogLevelWarn)...)
 }
 
 func (l *Log) Error(msg string, args ...Arg) {
-	l.logger.WithOptions(zap.AddStacktrace(zapcore.ErrorLevel)).Error(msg, buildLoggerArgs(args)...)
+	l.logger.WithOptions(zap.AddStacktrace(zapcore.ErrorLevel)).Error(msg, buildLoggerArgs(args, LogLevelError)...)
 }
 
 var _ Logger = (*Log)(nil)
 
 // buildLoggerArgs build logger args
-func buildLoggerArgs(args []Arg) []zap.Field {
+func buildLoggerArgs(args []Arg, level Level) []zap.Field {
 	callerFields := getCallerInfoForLog()
 	fields := make([]zap.Field, 0, len(args)+len(callerFields))
 	for _, arg := range args {
 		fields = append(fields, anyToZapField(arg.Key, arg.Value))
 	}
-	fields = append(fields, callerFields...)
+	if level != LogLevelInfo {
+		fields = append(fields, callerFields...)
+	}
+
 	return fields
 }
 

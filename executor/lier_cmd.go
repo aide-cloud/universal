@@ -3,38 +3,33 @@ package executor
 import (
 	"fmt"
 	"github.com/aide-cloud/universal/alog"
-	"runtime"
-	"strconv"
-	"time"
+	"sync"
 )
 
 type (
 	LierCmd struct {
-		appName string
-		cmdName string
-		version string
-		runTime string
-		desc    string
-		author  string
-		service []Service
-		logger  alog.Logger
+		service  []Service
+		logger   alog.Logger
+		property map[string]string
+		lock     sync.Mutex
 	}
+
+	LierCmdOption func(*LierCmd)
 )
 
 var _ MulServicesProgram = (*LierCmd)(nil)
 
 // NewLierCmd 初始化生成LierCmd
-func NewLierCmd(cfg *LierCmdConfig) *LierCmd {
-	return &LierCmd{
-		appName: cfg.AppName,
-		cmdName: cfg.CmdName,
-		desc:    cfg.Desc,
-		version: cfg.Version,
-		runTime: time.Now().Format("2006-01-02 15:04:05"),
-		author:  cfg.Author,
-		service: cfg.Service,
-		logger:  cfg.Logger,
+func NewLierCmd(options ...LierCmdOption) *LierCmd {
+	l := &LierCmd{
+		property: make(map[string]string),
 	}
+	l.lock.Lock()
+	for _, option := range options {
+		option(l)
+	}
+	l.lock.Unlock()
+	return l
 }
 
 func (cmd *LierCmd) Log() alog.Logger {
@@ -52,7 +47,7 @@ func (cmd *LierCmd) Start() error {
 
 // Stop 停止
 func (cmd *LierCmd) Stop() {
-	cmd.Log().Warn(fmt.Sprintf("%s-%s stoped!\n", cmd.appName, cmd.cmdName))
+	cmd.Log().Warn("master service stopped!")
 }
 
 // ServicesRegistration 服务注册
@@ -61,8 +56,7 @@ func (cmd *LierCmd) ServicesRegistration() []Service {
 }
 
 func (cmd *LierCmd) fmtASCIIGenerator() {
-	zeusStrUp := `
-┌───────────────────────────────────────────────────────────────────────────────────────┐
+	fmt.Println(`┌───────────────────────────────────────────────────────────────────────────────────────┐
 │                                      _____  _____   ______                            │
 │                               /\    |_   _||  __ \ |  ____|                           │
 │                              /  \     | | || |  | || |__                              │
@@ -70,20 +64,67 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 │                            / /__\ \  _| |_|| |__| || |____                            │
 │                           /_/    \_\|_____||_____/ |______|                           │							
 │                                 good luck and no bug                                  │
-└───────────────────────────────────────────────────────────────────────────────────────┘
-`
+└───────────────────────────────────────────────────────────────────────────────────────┘`)
 
-	version := `
-┌───────────────────────────────────────────────────────────────────────────────────────
-├── app name  	: ` + cmd.appName + `
-├── cmd name  	: ` + cmd.cmdName + `
-├── app desc  	: ` + cmd.desc + `
-├── app version	: ` + cmd.version + `
-├── GoVersion 	: ` + runtime.Version() + `
-├── GOOS      	: ` + runtime.GOOS + `
-├── NumCPU    	: ` + strconv.Itoa(runtime.NumCPU()) + `
-├── RunTime    	: ` + cmd.runTime + `
+	if cmd.property == nil || len(cmd.property) == 0 {
+		return
+	}
+
+	detail := `
+┌───────────────────────────────────────────────────────────────────────────────────────`
+
+	for k, p := range cmd.property {
+		detail += fmt.Sprintf("\n├── %s: %s", k, p)
+	}
+
+	detail += `
 └───────────────────────────────────────────────────────────────────────────────────────
 `
-	fmt.Println(zeusStrUp + version)
+
+	fmt.Println(detail)
+}
+
+// WithServices 设置服务
+func WithServices(services ...Service) LierCmdOption {
+	return func(l *LierCmd) {
+		l.service = append(l.service, services...)
+
+	}
+}
+
+// AddService 添加服务
+func AddService(service Service) LierCmdOption {
+	return func(l *LierCmd) {
+		if service == nil {
+			return
+		}
+		l.service = append(l.service, service)
+	}
+}
+
+// WithLogger 设置日志
+func WithLogger(logger alog.Logger) LierCmdOption {
+	return func(l *LierCmd) {
+		l.logger = logger
+	}
+}
+
+// WithProperty 设置属性
+func WithProperty(property map[string]string) LierCmdOption {
+	return func(l *LierCmd) {
+		if property == nil || len(property) == 0 {
+			return
+		}
+		l.property = property
+	}
+}
+
+// AddProperty 添加属性
+func AddProperty(key, value string) LierCmdOption {
+	return func(l *LierCmd) {
+		if key == "" {
+			return
+		}
+		l.property[key] = value
+	}
 }

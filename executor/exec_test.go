@@ -7,32 +7,18 @@ import (
 )
 
 func TestName(t *testing.T) {
-	lierCmd := NewLierCmd(&LierCmdConfig{
-		AppName: "test",
-		CmdName: "test-cmd",
-		Desc:    "test-cmd-desc",
-		Version: "v1.0.0",
-		Author:  "biao.hu",
-		Service: []Service{newtTestServer()},
-	})
+	lierCmd := NewLierCmd()
 
 	ExecMulSerProgram(lierCmd)
 }
 
 func TestOption(t *testing.T) {
-	lierCmd := NewLierCmd(
-		NewLierCmdConfig(
-			WithCmdName("test-cmd-option"),
-			WithDesc("test-cmd-desc"),
-			WithVersion("v1.0.0"),
-			WithServices(newtTestServer()),
-			WithAuthor("biao.hu"),
-			WithAppName("test-APP")))
+	lierCmd := NewLierCmd(WithLogger(alog.NewLogger()), WithProperty(map[string]string{"test ": "test"}), AddProperty("test2", "test2"))
 	ExecMulSerProgram(lierCmd)
 }
 
 func TestCtrlC(t *testing.T) {
-	NewCtrlC(NewLierCmd(NewLierCmdConfig(WithLogger(alog.NewLogger(alog.WithOutputType(alog.OutputJsonType)))))).Run()
+	NewCtrlC(NewLierCmd(WithLogger(alog.NewLogger()))).Run()
 }
 
 type MyServer struct {

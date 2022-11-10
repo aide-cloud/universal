@@ -31,6 +31,10 @@ type (
 	LierGinOption func(*LierGin)
 )
 
+func (l *LierGin) Name() string {
+	return l.name
+}
+
 var _ executor.Service = (*LierGin)(nil)
 
 func NewGin(options ...LierGinOption) *LierGin {
@@ -91,6 +95,13 @@ func WithGinRouters(routerFunc ...Router) LierGinOption {
 func WithLogger(logger alog.Logger) LierGinOption {
 	return func(l *LierGin) {
 		l.log = logger
+	}
+}
+
+// WithName set service name
+func WithName(name string) LierGinOption {
+	return func(l *LierGin) {
+		l.name = name
 	}
 }
 

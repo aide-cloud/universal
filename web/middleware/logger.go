@@ -19,14 +19,21 @@ func Logger(logger alog.Logger) gin.HandlerFunc {
 		clientIP := c.ClientIP()
 		method := c.Request.Method
 		errorMessage := c.Errors.ByType(gin.ErrorTypePrivate).String()
-		logger.Info("gin",
-			alog.Arg{Key: "path", Value: path},
-			alog.Arg{Key: "raw", Value: raw},
-			alog.Arg{Key: "status", Value: status},
-			alog.Arg{Key: "latency", Value: latency},
-			alog.Arg{Key: "clientIP", Value: clientIP},
-			alog.Arg{Key: "method", Value: method},
-			alog.Arg{Key: "errorMessage", Value: errorMessage},
-		)
+		args := []alog.Arg{{Key: "path", Value: path},
+			{Key: "raw", Value: raw},
+			{Key: "status", Value: status},
+			{Key: "latency", Value: latency},
+			{Key: "clientIP", Value: clientIP},
+			{Key: "method", Value: method},
+			{Key: "errorMessage", Value: errorMessage},
+		}
+
+		// 根据status打印日志
+		switch {
+		case status >= 400:
+			logger.Warn("client error", args...)
+		default:
+			logger.Info("success", args...)
+		}
 	}
 }

@@ -28,8 +28,8 @@ func NewHttpServer(logger alog.Logger) *web.LierGin {
 
 // registerRouter registers the router.
 func registerRouter(r *gin.Engine, logger alog.Logger) {
-	r.Use(middleware.Logger(GetGlobalLog()))
-	r.Use(gin.Recovery())
+	r.Use(middleware.Logger(logger))
+	r.Use(middleware.Recover(logger))
 	r.Use(middleware.Cross())
 	web.HttpPing(r, logger)
 	p8s.RegisterMetricRoute(r)

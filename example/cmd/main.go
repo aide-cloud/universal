@@ -24,7 +24,6 @@ func init() {
 }
 
 func main() {
-
 	executor.ExecMulSerProgram(
 		executor.NewLierCmd(
 			executor.WithServices(server.NewHttpServer(server.GetGlobalLog())),

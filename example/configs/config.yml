@@ -1,5 +1,5 @@
 server:
-#  mode: release
-  mode: debug
+  mode: release
+#  mode: debug
 #  mode: test
   http_addr: localhost:18000

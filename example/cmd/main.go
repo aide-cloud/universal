@@ -26,13 +26,13 @@ func init() {
 func main() {
 	executor.ExecMulSerProgram(
 		executor.NewLierCmd(
-			executor.WithServices(server.NewHttpServer(server.GetGlobalLog())),
+			executor.WithLogger(server.GetGlobalLog()),
+			executor.AddService(server.NewHttpServer),
 			executor.AddProperty("appName", appName),
 			executor.AddProperty("cmdName", cmdName),
 			executor.AddProperty("desc   ", desc),
 			executor.AddProperty("author ", author),
 			executor.AddProperty("version", Version),
-			executor.WithLogger(server.GetGlobalLog()),
 		),
 	)
 }

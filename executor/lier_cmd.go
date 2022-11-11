@@ -20,9 +20,10 @@ type (
 var _ MulServicesProgram = (*LierCmd)(nil)
 
 // NewLierCmd 初始化生成LierCmd
-func NewLierCmd(options ...LierCmdOption) *LierCmd {
+func NewLierCmd(options ...LierCmdOption) MulServicesProgram {
 	l := &LierCmd{
 		property: make(map[string]string),
+		service:  make([]Service, 0, 32),
 	}
 	l.lock.Lock()
 	for _, option := range options {
@@ -85,20 +86,21 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 }
 
 // WithServices 设置服务
-func WithServices(services ...Service) LierCmdOption {
+func WithServices(services ...NewServiceFunc) LierCmdOption {
 	return func(l *LierCmd) {
-		l.service = append(l.service, services...)
-
+		for _, service := range services {
+			l.service = append(l.service, service(l.logger))
+		}
 	}
 }
 
-// AddService 添加服务
-func AddService(service Service) LierCmdOption {
+// AddService 添加一个服务
+func AddService(service NewServiceFunc) LierCmdOption {
 	return func(l *LierCmd) {
 		if service == nil {
 			return
 		}
-		l.service = append(l.service, service)
+		l.service = append(l.service, service(l.logger))
 	}
 }
 

@@ -30,6 +30,8 @@ func Logger(logger alog.Logger) gin.HandlerFunc {
 
 		// 根据status打印日志
 		switch {
+		case status >= 500:
+			logger.Error("gin server error", args...)
 		case status >= 400:
 			logger.Warn("client error", args...)
 		default:

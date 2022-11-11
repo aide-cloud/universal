@@ -16,8 +16,8 @@ type (
 	RecoverOption func(*RecoverConfig)
 )
 
-// NewRecoverOption returns a new RecoverOption.
-func NewRecoverOption(options ...RecoverOption) *RecoverConfig {
+// NewRecoverConfig returns a new RecoverOption.
+func NewRecoverConfig(options ...RecoverOption) *RecoverConfig {
 	rec := &RecoverConfig{}
 
 	for _, option := range options {

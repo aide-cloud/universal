@@ -1,8 +1,6 @@
 package executor
 
-import (
-	"github.com/aide-cloud/universal/alog"
-)
+import "github.com/aide-cloud/universal/alog"
 
 type (
 	// Service 完整的服务接口
@@ -43,6 +41,8 @@ type (
 		MulServices
 		Logger
 	}
+
+	NewServiceFunc func(logger alog.Logger) Service
 )
 
 // ExecMulSerProgram 执行多服务程序

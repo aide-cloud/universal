@@ -17,13 +17,16 @@ type (
 		Warn(msg string, args ...Arg)
 		// Error 日志级别为Error
 		Error(msg string, args ...Arg)
+		// Alert 日志级别为Alert
+		Alert(hook AlertHook, msg string, args ...Arg)
 	}
 
 	Level      string // 日志级别
 	OutputType uint8  // 输出类型
 	OutputMode uint8  // 输出模式
 
-	Option func(*Log) // 日志配置选项
+	Option    func(*Log)                    // 日志配置选项
+	AlertHook func(msg string, args ...Arg) // 报警钩子
 
 	Arg struct {
 		Key   string // 日志字段名
@@ -48,6 +51,11 @@ type (
 	}
 )
 
+func (l *Log) Alert(hook AlertHook, msg string, args ...Arg) {
+	go hook(msg, args...)
+	l.logger.Fatal(msg, buildLoggerArgs(args, LogLeveLAlert)...)
+}
+
 func (l *Log) Debug(msg string, args ...Arg) {
 	l.logger.Debug(msg, buildLoggerArgs(args, LogLevelDebug)...)
 }
@@ -56,7 +64,7 @@ func (l *Log) Info(msg string, args ...Arg) {
 	l.logger.Info(msg, buildLoggerArgs(args, LogLevelInfo)...)
 }
 
-func (l Log) Warn(msg string, args ...Arg) {
+func (l *Log) Warn(msg string, args ...Arg) {
 	l.logger.Warn(msg, buildLoggerArgs(args, LogLevelWarn)...)
 }
 

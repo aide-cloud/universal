@@ -31,6 +31,7 @@ const (
 	LogLevelInfo  Level = "info"
 	LogLevelWarn  Level = "warn"
 	LogLevelError Level = "error"
+	LogLeveLAlert Level = "alert"
 )
 
 // NewLogger 创建日志记录器

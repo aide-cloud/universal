@@ -17,13 +17,13 @@ var (
 type (
 	// MysqlConfig 数据库配置类型
 	MysqlConfig struct {
-		User     string
-		Password string
-		Addr     string
-		Port     uint
-		DBName   string
-		Charset  string
-		Debug    bool
+		User     string `json:"user" yaml:"user"`
+		Password string `json:"password" yaml:"password"`
+		Host     string `json:"host" yaml:"host"`
+		Port     uint   `json:"port" yaml:"port"`
+		Db       string `json:"db" yaml:"db"`
+		Charset  string `json:"charset" yaml:"charset"`
+		Debug    bool   `json:"debug" yaml:"debug"`
 	}
 
 	MysqlConfigOption func(*MysqlConfig)
@@ -39,8 +39,8 @@ func GetMysqlConnect(cfg *MysqlConfig) *gorm.DB {
 	args := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s&parseTime=True&loc=Local",
 		cfg.User,
 		cfg.Password,
-		fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
-		cfg.DBName,
+		fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		cfg.Db,
 		cfg.Charset,
 	)
 	conn, err := gorm.Open(mysql.Open(args))
@@ -90,9 +90,9 @@ func WithMysqlPassword(password string) MysqlConfigOption {
 }
 
 // WithMysqlAddr 设置数据库地址
-func WithMysqlAddr(addr string) MysqlConfigOption {
+func WithMysqlAddr(host string) MysqlConfigOption {
 	return func(cfg *MysqlConfig) {
-		cfg.Addr = addr
+		cfg.Host = host
 	}
 }
 
@@ -106,7 +106,7 @@ func WithMysqlPort(port uint) MysqlConfigOption {
 // WithMysqlDBName 设置数据库名
 func WithMysqlDBName(dbName string) MysqlConfigOption {
 	return func(cfg *MysqlConfig) {
-		cfg.DBName = dbName
+		cfg.Db = dbName
 	}
 }
 

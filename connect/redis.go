@@ -12,7 +12,25 @@ import (
 type (
 	// RedisConfig redis connect
 	RedisConfig struct {
-		redis.Options
+		Network            string        `json:"network" yaml:"network"`
+		Addr               string        `json:"addr" yaml:"addr"`
+		Password           string        `json:"password" yaml:"password"`
+		DB                 int           `json:"db" yaml:"db"`
+		MaxRetries         int           `json:"max_retries" yaml:"max_retries"`
+		MinRetryBackoff    time.Duration `json:"min_retry_backoff" yaml:"min_retry_backoff"`
+		MaxRetryBackoff    time.Duration `json:"max_retry_backoff" yaml:"max_retry_backoff"`
+		DialTimeout        time.Duration `json:"dial_timeout" yaml:"dial_timeout"`
+		ReadTimeout        time.Duration `json:"read_timeout" yaml:"read_timeout"`
+		WriteTimeout       time.Duration `json:"write_timeout" yaml:"write_timeout"`
+		PoolSize           int           `json:"pool_size" yaml:"pool_size"`
+		MinIdleConns       int           `json:"min_idle_conns" yaml:"min_idle_conns"`
+		MaxConnAge         time.Duration `json:"max_conn_age" yaml:"max_conn_age"`
+		PoolTimeout        time.Duration `json:"pool_timeout" yaml:"pool_timeout"`
+		IdleTimeout        time.Duration `json:"idle_timeout" yaml:"idle_timeout"`
+		IdleCheckFrequency time.Duration `json:"idle_check_frequency" yaml:"idle_check_frequency"`
+		TLSConfig          *tls.Config   `json:"tls_config" yaml:"tls_config"`
+		Dialer             func() (net.Conn, error)
+		OnConnect          func(*redis.Conn) error
 	}
 
 	RedisConfigOption func(*RedisConfig)
@@ -31,13 +49,33 @@ func NewRedisConfig(options ...RedisConfigOption) *RedisConfig {
 
 // NewRedisClient 连接池
 func NewRedisClient(cfg *RedisConfig) *redis.Client {
-	client := redis.NewClient(&cfg.Options)
+	client := redis.NewClient(&redis.Options{
+		Network:            cfg.Network,
+		Addr:               cfg.Addr,
+		Dialer:             cfg.Dialer,
+		OnConnect:          cfg.OnConnect,
+		Password:           cfg.Password,
+		DB:                 cfg.DB,
+		MaxRetries:         cfg.MaxRetries,
+		MinRetryBackoff:    cfg.MinRetryBackoff,
+		MaxRetryBackoff:    cfg.MaxRetryBackoff,
+		DialTimeout:        cfg.DialTimeout,
+		ReadTimeout:        cfg.ReadTimeout,
+		WriteTimeout:       cfg.WriteTimeout,
+		PoolSize:           cfg.PoolSize,
+		MinIdleConns:       cfg.MinIdleConns,
+		MaxConnAge:         cfg.MaxConnAge,
+		PoolTimeout:        cfg.PoolTimeout,
+		IdleTimeout:        cfg.IdleTimeout,
+		IdleCheckFrequency: cfg.IdleCheckFrequency,
+		TLSConfig:          cfg.TLSConfig,
+	})
 
 	return client
 }
 
-// NewRedisDaoSingleton 获取同一个redis连接
-func NewRedisDaoSingleton(cfg *RedisConfig) *redis.Client {
+// NewRedisSingleton 获取同一个redis连接
+func NewRedisSingleton(cfg *RedisConfig) *redis.Client {
 	if redisCli == nil {
 		once.Do(func() {
 			redisCli = NewRedisClient(cfg)

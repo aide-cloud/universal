@@ -31,10 +31,6 @@ type (
 	LierGinOption func(*LierGin)
 )
 
-func (l *LierGin) Name() string {
-	return l.name
-}
-
 var _ executor.Service = (*LierGin)(nil)
 
 func NewGin(options ...LierGinOption) *LierGin {

@@ -1,14 +1,26 @@
 package response
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/aide-cloud/universal/aerror"
+	"github.com/gin-gonic/gin"
+)
 
-func WriteJSON(c *gin.Context, data interface{}, err error) {
+func JSON(c *gin.Context, data interface{}, err error) {
 	if err != nil {
-		c.JSON(200, gin.H{
-			"code": 1,
-			"msg":  err.Error(),
-		})
-		return
+		switch err.(type) {
+		case aerror.Error:
+			c.JSON(err.(aerror.Error).HTTPStatus(), gin.H{
+				"code":    err.(aerror.Error).Code(),
+				"message": err.(aerror.Error).Message(),
+				"data":    data,
+			})
+		default:
+			c.JSON(500, gin.H{
+				"code":    500,
+				"message": err.Error(),
+				"data":    data,
+			})
+		}
 	}
 
 	c.JSON(200, gin.H{

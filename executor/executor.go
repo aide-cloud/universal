@@ -7,7 +7,6 @@ type (
 	Service interface {
 		Starter
 		Stopper
-		Name
 	}
 
 	// Starter 开始方法的接口
@@ -17,11 +16,6 @@ type (
 	// Stopper 结束方法的接口
 	Stopper interface {
 		Stop()
-	}
-
-	// Name 服务名称
-	Name interface {
-		Name() string
 	}
 
 	// Logger 设置日志
@@ -36,8 +30,7 @@ type (
 
 	// MulServicesProgram 支持多服务启动及关闭的程序接口
 	MulServicesProgram interface {
-		Starter
-		Stopper
+		Service
 		MulServices
 		Logger
 	}

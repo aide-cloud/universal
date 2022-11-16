@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/mysql"
 	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"sync"
 )
 
@@ -24,6 +25,7 @@ type (
 		Db       string `json:"db" yaml:"db"`
 		Charset  string `json:"charset" yaml:"charset"`
 		Debug    bool   `json:"debug" yaml:"debug"`
+		log      logger.Interface
 	}
 
 	MysqlConfigOption func(*MysqlConfig)
@@ -43,7 +45,7 @@ func GetMysqlConnect(cfg *MysqlConfig) *gorm.DB {
 		cfg.Db,
 		cfg.Charset,
 	)
-	conn, err := gorm.Open(mysql.Open(args))
+	conn, err := gorm.Open(mysql.Open(args), &gorm.Config{Logger: cfg.log})
 	if err != nil {
 		panic(fmt.Sprintf("gorm.Open err: %s", err.Error()))
 	}
@@ -86,6 +88,13 @@ func WithMysqlUser(user string) MysqlConfigOption {
 func WithMysqlPassword(password string) MysqlConfigOption {
 	return func(cfg *MysqlConfig) {
 		cfg.Password = password
+	}
+}
+
+// WithMysqlLog 设置数据库日志
+func WithMysqlLog(log logger.Interface) MysqlConfigOption {
+	return func(cfg *MysqlConfig) {
+		cfg.log = log
 	}
 }
 

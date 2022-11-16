@@ -35,7 +35,11 @@ const (
 )
 
 // NewLogger 创建日志记录器
-func NewLogger(options ...Option) Logger {
+func NewLogger(options ...Option) *Log {
+	return newLogger(options...)
+}
+
+func newLogger(options ...Option) *Log {
 	aLog := Log{}
 
 	// 初始化日志配置项
@@ -89,6 +93,20 @@ func NewLogger(options ...Option) Logger {
 	)
 
 	return &aLog
+}
+
+// NewGormLogger 创建gorm日志记录器
+func NewGormLogger(options ...Option) *GormLogger {
+	return &GormLogger{
+		log: newLogger(options...),
+	}
+}
+
+// GetGormLogger 基于Log创建gorm日志记录器
+func GetGormLogger(logger *Log) *GormLogger {
+	return &GormLogger{
+		log: logger,
+	}
 }
 
 // getFileLogWriter 获取文件日志写入器

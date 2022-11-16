@@ -1,10 +1,13 @@
 package alog
 
 import (
+	"context"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gorm.io/gorm/logger"
 	"path"
 	"runtime"
+	"time"
 )
 
 type (
@@ -49,7 +52,70 @@ type (
 		outputType          OutputType          // 输出类型 1:JSON 2:Console
 		outMode             OutputMode          // 日志输出方式 1. file 2. console 3. file+console
 	}
+
+	GormLogger struct {
+		log      *Log
+		LogLevel logger.LogLevel
+	}
 )
+
+// getArgs build logger args
+func getArgs(i []any) []Arg {
+	length := len(i)
+	var args = make([]Arg, 0, length)
+	for j := 0; j < length; j += 2 {
+		argTmp := Arg{}
+		switch i[j].(type) {
+		case string:
+			argTmp.Key = i[j].(string)
+		default:
+			argTmp.Key = "key_" + string(rune(j))
+		}
+		if j+1 < length {
+			args = append(args, Arg{Key: argTmp.Key, Value: i[j+1]})
+		} else {
+			args = append(args, Arg{Key: argTmp.Key, Value: argTmp.Key})
+		}
+	}
+
+	return args
+}
+
+func (g *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
+	newLog := *g
+	newLog.LogLevel = level
+	return &newLog
+}
+
+func (g *GormLogger) Info(ctx context.Context, s string, i ...interface{}) {
+	if g.LogLevel >= logger.Info {
+		g.log.Info(s, getArgs(i)...)
+	}
+}
+
+func (g *GormLogger) Warn(ctx context.Context, s string, i ...interface{}) {
+	if g.LogLevel >= logger.Warn {
+		g.log.Warn(s, getArgs(i)...)
+	}
+}
+
+func (g *GormLogger) Error(ctx context.Context, s string, i ...interface{}) {
+	if g.LogLevel >= logger.Error {
+		g.log.Error(s, getArgs(i)...)
+	}
+}
+
+func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+	if g.LogLevel > 0 {
+		elapsed := time.Since(begin)
+		sql, rows := fc()
+		if err != nil {
+			g.Error(ctx, err.Error(), "rows", rows, "sql", sql, "elapsed", elapsed)
+		} else {
+			g.Info(ctx, "", "rows", rows, "sql", sql, "elapsed", elapsed)
+		}
+	}
+}
 
 func (l *Log) Alert(hook AlertHook, msg string, args ...Arg) {
 	go hook(msg, args...)
@@ -73,6 +139,7 @@ func (l *Log) Error(msg string, args ...Arg) {
 }
 
 var _ Logger = (*Log)(nil)
+var _ logger.Interface = (*GormLogger)(nil)
 
 // buildLoggerArgs build logger args
 func buildLoggerArgs(args []Arg, level Level) []zap.Field {

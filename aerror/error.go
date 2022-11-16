@@ -1,6 +1,8 @@
 package aerror
 
-import "net/http"
+import (
+	"net/http"
+)
 
 const (
 	ErrCodeUnknown           CodeType = 10000 + iota // 未知错误码

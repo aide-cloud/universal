@@ -23,7 +23,7 @@ func main() {
 
 func Get(log alog.Logger) map[string]interface{} {
 	dsn := "root:12345678@tcp(localhost:3306)/electric_app?charset=utf8&parseTime=True&loc=Local"
-	db := connect.GetMysqlConnectSingle(dsn, alog.GetGormLogger(log))
+	db := connect.GetMysqlConnectSingle("electric_app", dsn, alog.GetGormLogger(log))
 	db = db.Debug()
 
 	var map1 map[string]interface{}

@@ -3,6 +3,7 @@ package connect
 import (
 	"errors"
 	"fmt"
+	"github.com/aide-cloud/universal/alog"
 	"gorm.io/driver/mysql"
 	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -45,7 +46,12 @@ func GetMysqlConnect(cfg *MysqlConfig) *gorm.DB {
 		cfg.Db,
 		cfg.Charset,
 	)
-	conn, err := gorm.Open(mysql.Open(args), &gorm.Config{Logger: cfg.log})
+
+	myLog := cfg.log
+	if myLog == nil {
+		myLog = alog.NewGormLogger()
+	}
+	conn, err := gorm.Open(mysql.Open(args), &gorm.Config{Logger: myLog})
 	if err != nil {
 		panic(fmt.Sprintf("gorm.Open err: %s", err.Error()))
 	}

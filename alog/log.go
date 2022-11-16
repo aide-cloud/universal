@@ -54,7 +54,7 @@ type (
 	}
 
 	GormLogger struct {
-		log      *Log
+		log      Logger
 		LogLevel logger.LogLevel
 	}
 )
@@ -110,9 +110,9 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		elapsed := time.Since(begin)
 		sql, rows := fc()
 		if err != nil {
-			g.Error(ctx, err.Error(), "rows", rows, "sql", sql, "elapsed", elapsed)
+			g.Error(ctx, err.Error(), "rows", rows, "sql", sql, "elapsed", float64(elapsed.Nanoseconds())/1e6)
 		} else {
-			g.Info(ctx, "", "rows", rows, "sql", sql, "elapsed", elapsed)
+			g.Info(ctx, "", "rows", rows, "sql", sql, "elapsed", float64(elapsed.Nanoseconds())/1e6)
 		}
 	}
 }

@@ -35,11 +35,11 @@ const (
 )
 
 // NewLogger 创建日志记录器
-func NewLogger(options ...Option) *Log {
+func NewLogger(options ...Option) Logger {
 	return newLogger(options...)
 }
 
-func newLogger(options ...Option) *Log {
+func newLogger(options ...Option) Logger {
 	aLog := Log{}
 
 	// 初始化日志配置项
@@ -103,9 +103,9 @@ func NewGormLogger(options ...Option) *GormLogger {
 }
 
 // GetGormLogger 基于Log创建gorm日志记录器
-func GetGormLogger(logger *Log) *GormLogger {
+func GetGormLogger(log Logger) *GormLogger {
 	return &GormLogger{
-		log: logger,
+		log: log,
 	}
 }
 

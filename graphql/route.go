@@ -63,7 +63,7 @@ func NewHandler(root any, content embed.FS) *relay.Handler {
 	}
 	s, err := String(content)
 	if err != nil {
-		panic(fmt.Sprintf("reading embedded schema contents: %s", err))
+		panic(fmt.Sprintf("reading embedded schema contents: %v", err))
 	}
 
 	return &relay.Handler{Schema: graphql.MustParseSchema(s, root)}

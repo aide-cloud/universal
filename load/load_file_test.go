@@ -29,7 +29,7 @@ type Conf struct {
 
 func TestGetConf(t *testing.T) {
 	var conf Conf
-	err := GetConf[Conf]("test.yml", &conf)
+	err := GetConf("test.yml", &conf)
 	if err != nil {
 		t.Error(err)
 	}

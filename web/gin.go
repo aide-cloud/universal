@@ -6,6 +6,7 @@ import (
 	"github.com/aide-cloud/universal/alog"
 	"github.com/aide-cloud/universal/executor"
 	"github.com/aide-cloud/universal/web/middleware"
+	"github.com/aide-cloud/universal/web/routes"
 	"net/http"
 	"time"
 
@@ -52,7 +53,7 @@ func NewGin(options ...LierGinOption) executor.Service {
 	}
 
 	if len(l.registerRouterFunc) == 0 {
-		l.SetRouters(HttpPing, httpSelfIntroduction)
+		l.SetRouters(routes.HttpPing, httpSelfIntroduction)
 	}
 
 	r := l.engine
@@ -66,6 +67,19 @@ func NewGin(options ...LierGinOption) executor.Service {
 	l.server.Handler = l.engine
 
 	return l
+}
+
+// httpSelfIntroduction 自我介绍
+func httpSelfIntroduction(router *gin.Engine, _ alog.Logger) {
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    http.StatusOK,
+			"message": "hello world",
+			"version": gin.Version,
+			"now":     time.Now().Format("2006-01-02 15:04:05"),
+			"author":  "biao.hu",
+		})
+	})
 }
 
 // WithEngine set server handler
@@ -122,31 +136,4 @@ func (l *LierGin) Stop() {
 	if err != nil {
 		l.log.Error("http server shutdown error: ", alog.Arg{Key: "error", Value: err})
 	}
-}
-
-// HttpPing router ping
-func HttpPing(router *gin.Engine, _ alog.Logger) {
-	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.AbortWithStatus(http.StatusOK)
-	})
-}
-
-// HttpCheckHealth 检查服务健康
-func HttpCheckHealth(router *gin.Engine) {
-	router.GET("/check", func(ctx *gin.Context) {
-		ctx.AbortWithStatus(http.StatusOK)
-	})
-}
-
-// httpSelfIntroduction 自我介绍
-func httpSelfIntroduction(router *gin.Engine, _ alog.Logger) {
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":    http.StatusOK,
-			"message": "hello world",
-			"version": gin.Version,
-			"now":     time.Now().Format("2006-01-02 15:04:05"),
-			"author":  "biao.hu",
-		})
-	})
 }

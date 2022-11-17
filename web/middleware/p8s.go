@@ -1,4 +1,4 @@
-package p8s
+package middleware
 
 import (
 	"fmt"

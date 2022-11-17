@@ -36,8 +36,6 @@ type (
 	RedisConfigOption func(*RedisConfig)
 )
 
-var redisCli *redis.Client
-
 // NewRedisConfig 创建redis配置
 func NewRedisConfig(options ...RedisConfigOption) *RedisConfig {
 	config := &RedisConfig{}
@@ -72,17 +70,6 @@ func NewRedisClient(cfg *RedisConfig) *redis.Client {
 	})
 
 	return client
-}
-
-// NewRedisSingleton 获取同一个redis连接
-func NewRedisSingleton(cfg *RedisConfig) *redis.Client {
-	if redisCli == nil {
-		once.Do(func() {
-			redisCli = NewRedisClient(cfg)
-		})
-	}
-
-	return redisCli
 }
 
 // WithRedisNetwork redis网络类型

@@ -16,10 +16,10 @@ import (
 
 var workerMode = flag.String("w", "help", "worker mode")
 var repo = flag.String("r", "https://github.com/aide-cloud/aide-family-layout.git", "layout repo")
-var repoPath = flag.String("p", "", "repo path")
-var nomod = flag.Bool("n", false, "no mod")
+var repoPath = flag.String("p", "", "package path")
+var modName = flag.String("mod", "", "mod name")
 var version = flag.Bool("v", false, "version")
-var v = "v1.1.3"
+var v = "v1.1.4"
 
 var moduleAddIgnores = []string{
 	"go.mod", "go.sum",
@@ -47,13 +47,13 @@ func runCommand(path, name string, arg ...string) (msg string, err error) {
 	cmd.Stderr = &stderr
 	cmd.Dir = path
 	err = cmd.Run()
-	log.Println(cmd.Args)
+	//log.Println(cmd.Args)
 	if err != nil {
 		msg = fmt.Sprint(err) + ": " + stderr.String()
 		err = errors.New(msg)
 		log.Println("err", err.Error(), "cmd", cmd.Args)
 	}
-	log.Println(out.String())
+	//log.Println(out.String())
 	return
 }
 
@@ -77,28 +77,26 @@ func getModuleName() string {
 // gitClone clones a git repository to the given directory.
 func gitClone(filePath, repo string) {
 	dir := path.Join("./", filePath)
-	tmpPath := "tmp"
+	tmpPath := "/tmp"
 
 	var err error
-	// 获取本地module名称（go.mod第一行），用于替换
-	moduleName := path.Join(getModuleName(), dir)
 
 	_ = os.RemoveAll(dir)
 
 	err = os.MkdirAll(dir, 0755)
 	if err != nil {
+		log.Println("mkdir", dir, "err", err.Error())
 		return
 	}
 
-	err = os.RemoveAll(tmpPath)
+	err = os.Remove(path.Join(tmpPath, path.Base(dir)))
 	if err != nil {
-		return
-	}
-
-	err = os.Mkdir(tmpPath, os.ModePerm)
-	if err != nil {
-		_ = os.RemoveAll(path.Base(dir))
-		return
+		err = os.Mkdir(path.Join(tmpPath, path.Base(dir)), 0755)
+		if err != nil {
+			log.Println("mkdir", path.Join(tmpPath, path.Base(dir)), "err", err.Error())
+			_ = os.RemoveAll(path.Base(dir))
+			return
+		}
 	}
 
 	// bash -c "git clone repo --depth 1 dir"
@@ -106,7 +104,7 @@ func gitClone(filePath, repo string) {
 	if err != nil {
 		log.Println("创建项目失败")
 		_ = os.RemoveAll(path.Base(dir))
-		_ = os.RemoveAll(tmpPath)
+		_ = os.Remove(tmpPath)
 		return
 	}
 
@@ -114,16 +112,20 @@ func gitClone(filePath, repo string) {
 
 	_, _ = runCommand("", "cp", "-R", path.Join(tmpPath, path.Base(dir)), path.Dir(dir))
 
-	_ = os.RemoveAll(tmpPath)
+	_ = os.RemoveAll(path.Join(tmpPath, path.Base(dir)))
+
+	// 获取本地module名称（go.mod第一行），用于替换
+	moduleName := path.Join(getModuleName(), dir)
 
 	// nomod
-	if !*nomod {
+	if *modName != "" {
+		moduleName = strings.ReplaceAll(*modName, "/", "\\/")
+	} else {
+		moduleName = strings.ReplaceAll(moduleName, "/", "\\/")
 		for _, ignore := range moduleAddIgnores {
 			_ = os.Remove(path.Join(dir, ignore))
 		}
 	}
-
-	moduleName = strings.ReplaceAll(moduleName, "/", "\\/")
 
 	// 遍历dir下所有文件，替换module名称
 	_ = filepath.Walk(path.Join("./", dir), func(path string, info fs.FileInfo, err error) error {

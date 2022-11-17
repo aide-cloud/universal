@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"github.com/aide-cloud/universal/basic/assert"
-	"github.com/gin-gonic/gin"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"net/http"
@@ -68,21 +67,4 @@ func NewHandler(root any, content embed.FS) *relay.Handler {
 	}
 
 	return &relay.Handler{Schema: graphql.MustParseSchema(s, root)}
-}
-
-func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, isDev ...bool) {
-	if len(isDev) > 0 && isDev[0] {
-		r.GET("/graphql", gin.WrapF(NewGraphQLHandlerFunc()))
-	}
-	r.POST("/graphql", gin.WrapH(NewHandler(root, content)))
-}
-
-// GinGraphQLHandlerFunc returns a http.HandlerFunc that can be used to serve the GraphiQL IDE.
-func GinGraphQLHandlerFunc() gin.HandlerFunc {
-	return gin.WrapF(NewGraphQLHandlerFunc())
-}
-
-// GinHandler returns a http.Handler that can be used to serve the GraphQL API.
-func GinHandler(root any, content embed.FS) gin.HandlerFunc {
-	return gin.WrapH(NewHandler(root, content))
 }

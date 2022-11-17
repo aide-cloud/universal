@@ -1,4 +1,4 @@
-package p8s
+package routes
 
 import (
 	"github.com/gin-gonic/gin"

@@ -6,9 +6,9 @@ import (
 	"github.com/aide-cloud/universal/example/internal/conf"
 	"github.com/aide-cloud/universal/example/internal/service"
 	"github.com/aide-cloud/universal/executor"
-	"github.com/aide-cloud/universal/p8s"
 	"github.com/aide-cloud/universal/web"
 	"github.com/aide-cloud/universal/web/middleware"
+	"github.com/aide-cloud/universal/web/routes"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,8 +37,8 @@ func registerRouter(r *gin.Engine, log alog.Logger) {
 	r.Use(middleware.Recover(log))
 	r.Use(middleware.Cross())
 	web.HttpPing(r, log)
-	p8s.RegisterMetricRoute(r)
-	r.Use(p8s.ResponseTime())
+	routes.RegisterMetricRoute(r)
+	r.Use(middleware.ResponseTime())
 
 	r.GET("/test", func(ctx *gin.Context) {
 		db := connect.GetMysqlConnectSingle("electric_app", dsn, log)

@@ -7,10 +7,11 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/graph-gophers/graphql-go v1.4.0
+	github.com/pelletier/go-toml/v2 v2.0.1
 	github.com/prometheus/client_golang v1.13.1
 	go.uber.org/zap v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.3
 	gorm.io/gorm v1.24.1
 	gorm.io/plugin/prometheus v0.0.0-20221017063443-7949f253c4db
@@ -39,7 +40,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.24.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
@@ -52,4 +52,5 @@ require (
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

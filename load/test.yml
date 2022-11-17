@@ -1,5 +1,5 @@
 server:
-  addr: localhost
+  addr: localhost-from-yaml
   port: 8080
 
 mysql:

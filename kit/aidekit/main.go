@@ -14,8 +14,13 @@ import (
 	"strings"
 )
 
+const (
+	githubRepo = "https://github.com/aide-cloud/aide-family-layout.git"
+	giteeRepo  = "https://gitee.com/aide-cloud/aide-family-layout.git"
+)
+
 var workerMode = flag.String("w", "help", "worker mode")
-var repo = flag.String("r", "https://github.com/aide-cloud/aide-family-layout.git", "layout repo")
+var originRepo = flag.String("r", "github", "layout origin repo, github or gitee")
 var repoPath = flag.String("p", "", "package path")
 var modName = flag.String("mod", "", "mod name")
 var version = flag.Bool("v", false, "version")
@@ -35,7 +40,11 @@ func main() {
 	case "help":
 		flag.Usage()
 	case "new":
-		gitClone(*repoPath, *repo)
+		if *originRepo == "github" {
+			gitClone(*repoPath, githubRepo)
+		} else {
+			gitClone(*repoPath, giteeRepo)
+		}
 	}
 }
 

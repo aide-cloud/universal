@@ -32,6 +32,8 @@ func NewHttpServer(logger alog.Logger) executor.Service {
 
 // registerRouter registers the router.
 func registerRouter(r *gin.Engine, log alog.Logger) {
+	dsn := "root:12345678@tcp(localhost:3306)/electric_app1?charset=utf8&parseTime=True&loc=Local"
+	connect.GetMysqlConnectSingle("electric_app", dsn, log)
 	r.Use(middleware.Recover(log))
 	r.Use(middleware.Cross())
 	web.HttpPing(r, log)
@@ -39,8 +41,7 @@ func registerRouter(r *gin.Engine, log alog.Logger) {
 	r.Use(p8s.ResponseTime())
 
 	r.GET("/test", func(ctx *gin.Context) {
-		dsn := "root:12345678@tcp(localhost:3306)/electric_app?charset=utf8&parseTime=True&loc=Local"
-		db := connect.GetMysqlConnectSingle("electric_app", dsn, alog.GetGormLogger(log))
+		db := connect.GetMysqlConnectSingle("electric_app", dsn, log)
 		db = db.Debug()
 
 		var map1 map[string]interface{}

@@ -1,12 +1,10 @@
 package connect
 
 import (
-	"context"
 	"github.com/aide-cloud/universal/alog"
 	"gorm.io/driver/mysql"
 	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"gorm.io/plugin/prometheus"
 	"sync"
 )
@@ -17,12 +15,10 @@ var (
 )
 
 // GetMysqlConnect 获取新的数据库连接
-func GetMysqlConnect(dsnMap map[string]string, log ...logger.Interface) map[string]*gorm.DB {
-	var myLog logger.Interface
+func GetMysqlConnect(dsnMap map[string]string, log ...alog.Logger) map[string]*gorm.DB {
+	var myLog = alog.NewLogger()
 	if len(log) > 0 {
 		myLog = log[0]
-	} else {
-		myLog = alog.NewGormLogger()
 	}
 
 	connMap := make(map[string]*gorm.DB)
@@ -32,9 +28,9 @@ func GetMysqlConnect(dsnMap map[string]string, log ...logger.Interface) map[stri
 			continue
 		}
 
-		conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: myLog})
+		conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: alog.GetGormLogger(myLog)})
 		if err != nil {
-			myLog.Error(context.Background(), "mysql connect error", dbName, dsn, "err", err)
+			myLog.Warn("mysql connect error", alog.Arg{Key: dbName, Value: dsn}, alog.Arg{Key: "err", Value: err})
 			continue
 		}
 
@@ -49,7 +45,7 @@ func GetMysqlConnect(dsnMap map[string]string, log ...logger.Interface) map[stri
 			}, // 用户自定义指标
 		}))
 		if err != nil {
-			myLog.Error(context.Background(), "mysql use prometheus metrics error", dbName, dsn, "err", err)
+			myLog.Warn("mysql use prometheus metrics error", alog.Arg{Key: dbName, Value: dsn}, alog.Arg{Key: "err", Value: err})
 		}
 
 		connMap[dbName] = conn
@@ -59,7 +55,7 @@ func GetMysqlConnect(dsnMap map[string]string, log ...logger.Interface) map[stri
 }
 
 // GetMysqlConnectSingle 获取同一个数据库连接
-func GetMysqlConnectSingle(dbName, dsn string, log ...logger.Interface) *gorm.DB {
+func GetMysqlConnectSingle(dbName, dsn string, log ...alog.Logger) *gorm.DB {
 	if mysqlDB == nil {
 		once.Do(func() {
 			mysqlDB = GetMysqlConnect(map[string]string{

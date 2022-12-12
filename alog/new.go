@@ -27,11 +27,11 @@ const (
 )
 
 const (
-	LogLevelDebug Level = "debug"
-	LogLevelInfo  Level = "info"
-	LogLevelWarn  Level = "warn"
-	LogLevelError Level = "error"
-	LogLeveLAlert Level = "alert"
+	LogLevelDebug Level = iota - 1
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLeveLAlert
 )
 
 // NewLogger 创建日志记录器

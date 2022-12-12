@@ -31,6 +31,4 @@ func GetConf(filePath string, confStructPtr any) error {
 	default:
 		panic("file type error")
 	}
-
-	return nil
 }

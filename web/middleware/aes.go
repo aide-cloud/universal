@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/aide-cloud/universal/basic/assert"
 	"github.com/aide-cloud/universal/cipher"
 	"github.com/gin-gonic/gin"
@@ -36,16 +35,24 @@ type (
 	// args are: ctx, err
 	//  is the error
 	ErrCallback func(ctx *gin.Context, err error)
+
+	BaseError string // BaseError is the base error
 )
 
+func (b BaseError) Error() string {
+	return string(b)
+}
+
+var _ error = BaseError("")
+
 // ErrTokenEmpty is the error for token empty
-var ErrTokenEmpty = errors.New("token is empty")
+const ErrTokenEmpty BaseError = "token is empty"
 
 // ErrIdentityType is the error for identity type
-var ErrIdentityType = errors.New("'identity' must be a struct or a pointer to a struct")
+const ErrIdentityType BaseError = "'identity' must be a struct or a pointer to a struct"
 
 // ErrTokenInvalid is the error for token invalid
-var ErrTokenInvalid = errors.New("token is invalid")
+const ErrTokenInvalid BaseError = "token is invalid"
 
 // NewAesAuthConf returns a new AesAuthConf
 func NewAesAuthConf[T any](options ...AesAuthConfOption[T]) *AesAuthConf[T] {

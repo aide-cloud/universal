@@ -1,3 +1,0 @@
-type RootMutation {
-    pingString(ping: String!): String!
-}

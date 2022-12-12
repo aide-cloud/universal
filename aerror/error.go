@@ -1,7 +1,9 @@
 package aerror
 
 import (
+	"fmt"
 	"net/http"
+	"runtime/debug"
 )
 
 const (
@@ -63,12 +65,17 @@ type (
 		Fields() []Field
 	}
 
+	Stacker interface {
+		Stack() []byte
+	}
+
 	Error interface {
 		error
 		Coder
 		Message
 		HTTPStatus
 		Fields
+		Stacker
 	}
 
 	AError struct {
@@ -76,6 +83,7 @@ type (
 		code     CodeType
 		message  string
 		fields   []Field
+		stack    []byte
 	}
 
 	Option func(*AError)
@@ -83,54 +91,14 @@ type (
 	CodeType int
 
 	Field struct {
-		Name string
-		Msg  string
+		Key   string
+		Value any
 	}
 )
 
-var (
-	ErrUnknown        = New(WithCode(ErrCodeUnknown), WithMessage(ErrMessageUnknown))
-	ErrorParam        = New(WithCode(ErrCodeInvalidParam), WithMessage(ErrMessageInvalidParam))
-	ErrorToken        = New(WithCode(ErrCodeInvalidToken), WithMessage(ErrMessageInvalidToken), WithHTTPStatus(http.StatusUnauthorized))
-	ErrorSign         = New(WithCode(ErrCodeInvalidSign), WithMessage(ErrMessageInvalidSign), WithHTTPStatus(http.StatusUnauthorized))
-	ErrorRequest      = New(WithCode(ErrCodeInvalidRequest), WithMessage(ErrMessageInvalidRequest), WithHTTPStatus(http.StatusBadRequest))
-	ErrorResponse     = New(WithCode(ErrCodeInvalidResponse), WithMessage(ErrMessageInvalidResponse), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorData         = New(WithCode(ErrCodeInvalidData), WithMessage(ErrMessageInvalidData), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorState        = New(WithCode(ErrCodeInvalidState), WithMessage(ErrMessageInvalidState), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorOperation    = New(WithCode(ErrCodeInvalidOperation), WithMessage(ErrMessageInvalidOperation), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorPermission   = New(WithCode(ErrCodeInvalidPermission), WithMessage(ErrMessageInvalidPermission), WithHTTPStatus(http.StatusForbidden))
-	ErrorUser         = New(WithCode(ErrCodeInvalidUser), WithMessage(ErrMessageInvalidUser), WithHTTPStatus(http.StatusUnauthorized))
-	ErrorSystem       = New(WithCode(ErrCodeInvalidSystem), WithMessage(ErrMessageInvalidSystem), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorService      = New(WithCode(ErrCodeInvalidService), WithMessage(ErrMessageInvalidService), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorNetwork      = New(WithCode(ErrCodeInvalidNetwork), WithMessage(ErrMessageInvalidNetwork), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorDatabase     = New(WithCode(ErrCodeInvalidDatabase), WithMessage(ErrMessageInvalidDatabase), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorCache        = New(WithCode(ErrCodeInvalidCache), WithMessage(ErrMessageInvalidCache), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorCacheExpired = New(WithCode(ErrCodeCacheExpired), WithMessage(ErrMessageCacheExpired), WithHTTPStatus(http.StatusInternalServerError))
-	ErrorThirdParty   = New(WithCode(ErrCodeInvalidThirdParty), WithMessage(ErrMessageInvalidThirdParty), WithHTTPStatus(http.StatusInternalServerError))
-)
-
-var (
-	errorMap = map[CodeType]Error{
-		ErrCodeUnknown:           ErrUnknown,
-		ErrCodeInvalidParam:      ErrorParam,
-		ErrCodeInvalidToken:      ErrorToken,
-		ErrCodeInvalidSign:       ErrorSign,
-		ErrCodeInvalidRequest:    ErrorRequest,
-		ErrCodeInvalidResponse:   ErrorResponse,
-		ErrCodeInvalidData:       ErrorData,
-		ErrCodeInvalidState:      ErrorState,
-		ErrCodeInvalidOperation:  ErrorOperation,
-		ErrCodeInvalidPermission: ErrorPermission,
-		ErrCodeInvalidUser:       ErrorUser,
-		ErrCodeInvalidSystem:     ErrorSystem,
-		ErrCodeInvalidService:    ErrorService,
-		ErrCodeInvalidNetwork:    ErrorNetwork,
-		ErrCodeInvalidDatabase:   ErrorDatabase,
-		ErrCodeInvalidCache:      ErrorCache,
-		ErrCodeCacheExpired:      ErrorCacheExpired,
-		ErrCodeInvalidThirdParty: ErrorThirdParty,
-	}
-)
+func (a *AError) Stack() []byte {
+	return a.stack
+}
 
 func (a *AError) Fields() []Field {
 	return a.fields
@@ -159,14 +127,13 @@ func New(options ...Option) Error {
 		httpCode: http.StatusOK,
 		code:     ErrCodeUnknown,
 		message:  ErrMessageUnknown,
+		stack:    debug.Stack(),
 	}
 
 	for _, option := range options {
-		option(&e)
-	}
-
-	if _, ok := errorMap[e.code]; ok {
-		return errorMap[e.code]
+		if option != nil {
+			option(&e)
+		}
 	}
 
 	return &e
@@ -184,6 +151,27 @@ func WithMessage(message string) Option {
 	}
 }
 
+func WithErr(err error) Option {
+	if err == nil {
+		return nil
+	}
+	return func(e *AError) {
+		e.message = err.Error()
+	}
+}
+
+func WithStringer(str fmt.Stringer) Option {
+	return func(e *AError) {
+		e.message = str.String()
+	}
+}
+
+func WithStack(stack []byte) Option {
+	return func(e *AError) {
+		e.stack = stack
+	}
+}
+
 func WithHTTPStatus(httpCode int) Option {
 	return func(e *AError) {
 		e.httpCode = httpCode
@@ -193,5 +181,12 @@ func WithHTTPStatus(httpCode int) Option {
 func WithFields(fields ...Field) Option {
 	return func(e *AError) {
 		e.fields = fields
+	}
+}
+
+func WithCustom(code CodeType, msg string) Option {
+	return func(e *AError) {
+		e.code = code
+		e.message = msg
 	}
 }

@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -32,5 +33,20 @@ func TestSliceToString(t *testing.T) {
 		if v != "0" {
 			t.Errorf("str[%d] = %s; want 0", i, v)
 		}
+	}
+}
+
+func TestJob1(t *testing.T) {
+	var arr []int
+	MySlice(&arr)
+	fmt.Println(arr)
+	MySlice(&arr)
+	fmt.Println(arr)
+}
+
+func MySlice(list *[]int) {
+	// for 10
+	for i := 0; i < 10; i++ {
+		*list = append(*list, i)
 	}
 }

@@ -24,9 +24,9 @@ type (
 		Alert(hook AlertHook, msg string, args ...Arg)
 	}
 
-	Level      string // 日志级别
-	OutputType uint8  // 输出类型
-	OutputMode uint8  // 输出模式
+	Level      int8  // 日志级别
+	OutputType uint8 // 输出类型
+	OutputMode uint8 // 输出模式
 
 	Option    func(*Log)                    // 日志配置选项
 	AlertHook func(msg string, args ...Arg) // 报警钩子

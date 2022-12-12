@@ -34,7 +34,7 @@ type (
 
 var _ executor.Service = (*LierGin)(nil)
 
-func NewGin(options ...LierGinOption) executor.Service {
+func NewGin(options ...LierGinOption) *LierGin {
 	l := &LierGin{}
 	for _, option := range options {
 		option(l)

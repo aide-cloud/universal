@@ -8,7 +8,18 @@ import (
 	"net/http"
 )
 
-func NewGraphQLHandlerFunc() http.HandlerFunc {
+type HttpMethod string
+
+const (
+	Post              HttpMethod = http.MethodPost
+	Get               HttpMethod = http.MethodGet
+	Put               HttpMethod = http.MethodPut
+	Delete            HttpMethod = http.MethodDelete
+	DefaultHandlePath            = "/graphql"
+	DefaultViewPath              = "/view"
+)
+
+func View(handleMethod HttpMethod, handlePath string) http.HandlerFunc {
 	var page = []byte(`
 	<!DOCTYPE html>
 	<html>
@@ -23,8 +34,8 @@ func NewGraphQLHandlerFunc() http.HandlerFunc {
 			<div id="graphiql" style="height: 100vh;">Loading...</div>
 			<script>
 				function graphQLFetcher(graphQLParams) {
-					return fetch("/graphql", {
-						method: "post",
+					return fetch("` + handlePath + `", {
+						method: "` + string(handleMethod) + `",
 						body: JSON.stringify(graphQLParams),
 						credentials: "include",
 					}).then(function (response) {
@@ -55,7 +66,7 @@ func NewGraphQLHandlerFunc() http.HandlerFunc {
 	}
 }
 
-func NewHandler(root any, content embed.FS) *relay.Handler {
+func Handler(root any, content embed.FS) *relay.Handler {
 	s, err := String(content)
 	if err != nil {
 		panic(fmt.Sprintf("reading embedded schema contents: %v", err))

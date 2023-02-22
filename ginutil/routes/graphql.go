@@ -6,19 +6,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, isDev ...bool) {
-	if len(isDev) > 0 && isDev[0] {
-		r.GET("/graphql", gin.WrapF(graphql.NewGraphQLHandlerFunc()))
+// RegisterHttpRouter registers the GraphQL API and GraphiQL IDE.
+func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, dev ...bool) {
+	if len(dev) > 0 && dev[0] {
+		r.GET(graphql.DefaultViewPath, GinGraphqlView())
 	}
-	r.POST("/graphql", gin.WrapH(graphql.NewHandler(root, content)))
+
+	r.POST(graphql.DefaultHandlePath, GinGraphqlHandler(root, content))
 }
 
-// GinGraphQLHandlerFunc returns a http.HandlerFunc that can be used to serve the GraphiQL IDE.
-func GinGraphQLHandlerFunc() gin.HandlerFunc {
-	return gin.WrapF(graphql.NewGraphQLHandlerFunc())
+// GinGraphqlView returns a http.HandlerFunc that can be used to serve the GraphiQL IDE.
+func GinGraphqlView() gin.HandlerFunc {
+	return gin.WrapF(graphql.View(graphql.Post, graphql.DefaultHandlePath))
 }
 
-// GinHandler returns a http.Handler that can be used to serve the GraphQL API.
-func GinHandler(root any, content embed.FS) gin.HandlerFunc {
-	return gin.WrapH(graphql.NewHandler(root, content))
+// GinGraphqlHandler returns a http.Handler that can be used to serve the GraphQL API.
+func GinGraphqlHandler(root any, content embed.FS) gin.HandlerFunc {
+	return gin.WrapH(graphql.Handler(root, content))
 }

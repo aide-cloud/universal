@@ -263,3 +263,104 @@ master service stopped!
         }
 
         ```
+       
+### 6. graphql模块
+
+> 应用场景：graphql服务, 让你的服务更加优雅
+
+* 目录结构
+```bash
+├── .
+├── go.mod
+├── go.sum
+├── main.go
+└── sdl
+    └── root.graphql
+```
+
+* main.go
+```go
+package main
+
+import (
+	"embed"
+	"github.com/aide-cloud/universal/graphql"
+	"github.com/gin-gonic/gin"
+)
+
+// Content holds all the SDL file content.
+//go:embed sdl
+var content embed.FS
+
+type Root struct{}
+
+func (r *Root) Ping() string {
+	return "pong"
+}
+
+// RegisterHttpRouter registers the GraphQL API and GraphiQL IDE.
+func RegisterHttpRouter(r *gin.Engine, root any, content embed.FS, dev ...bool) {
+	if len(dev) > 0 && dev[0] {
+		r.GET(graphql.DefaultViewPath, GinGraphqlView())
+	}
+
+	r.POST(graphql.DefaultHandlePath, GinGraphqlHandler(root, content))
+}
+
+// GinGraphqlView returns a http.HandlerFunc that can be used to serve the GraphiQL IDE.
+func GinGraphqlView() gin.HandlerFunc {
+	return gin.WrapF(graphql.View(graphql.Post, graphql.DefaultHandlePath))
+}
+
+// GinGraphqlHandler returns a http.Handler that can be used to serve the GraphQL API.
+func GinGraphqlHandler(root any, content embed.FS) gin.HandlerFunc {
+	return gin.WrapH(graphql.Handler(root, content))
+}
+
+func main() {
+	r := gin.Default()
+	RegisterHttpRouter(r, &Root{}, content, true)
+	r.Run()
+}
+```
+
+* sdl/root.graphql
+```graphql
+schema {
+    query: RootQuery
+    mutation: RootMutation
+}
+
+type RootQuery {
+    ping: String!
+}
+
+type RootMutation {
+    ping: String!
+}
+```
+
+* 运行效果
+```bash
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:   export GIN_MODE=release
+ - using code:  gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /view                     --> github.com/gin-gonic/gin.WrapF.func1 (3 handlers)
+[GIN-debug] POST   /graphql                  --> github.com/gin-gonic/gin.WrapH.func1 (3 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Environment variable PORT is undefined. Using port :8080 by default
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2023/02/22 - 17:08:29 | 200 |     177.084µs |             ::1 | GET      "/view"
+[GIN] 2023/02/22 - 17:08:29 | 200 |      3.5715ms |             ::1 | POST     "/graphql"
+[GIN] 2023/02/22 - 17:08:29 | 404 |         792ns |             ::1 | GET      "/favicon.ico"
+[GIN] 2023/02/22 - 17:08:37 | 200 |     120.125µs |             ::1 | POST     "/graphql"
+[GIN] 2023/02/22 - 17:08:44 | 200 |       88.75µs |             ::1 | POST     "/graphql"
+```
+
+* 运行截图
+
+![img.png](images/img.png)

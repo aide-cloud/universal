@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/aide-cloud/universal/aerror"
-	"github.com/aide-cloud/universal/ginutil/response"
+	"github.com/aide-cloud/universal/gin/response"
 	"github.com/gin-gonic/gin"
 	"path"
 )

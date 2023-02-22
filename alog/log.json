@@ -1,7 +1,0 @@
-{
-  "key": "value",
-  "key": "value1",
-  "func": "alog.TestLog_Debug",
-  "file": "/Users/hubiao/go/src/universal/alog/log_test.go",
-  "line": 16
-}

@@ -15,22 +15,22 @@ Basic, universal, everyone's package
  ```go
 
 func Demo() error {
-    err := doSomething1()
-    if err != nil {
-        return err
-    }
-    
-    err = doSomething2()
-    if err != nil {
-        return err
-    }
-    
-    err = doSomething3()
-    if err != nil {
-        return err
-    }
-    
-    return nil
+err := doSomething1()
+if err != nil {
+return err
+}
+
+err = doSomething2()
+if err != nil {
+return err
+}
+
+err = doSomething3()
+if err != nil {
+return err
+}
+
+return nil
 }
 ```
 
@@ -119,7 +119,8 @@ func main() {
 
 > 应用场景：多服务程序启动，优雅退出，信号处理，资源释放
 
-* 简单使用 
+* 简单使用
+
 ```go
 package main
 
@@ -232,6 +233,7 @@ func main() {
 ``` 
 
 > 运行效果
+
 ```bash
 master service starting...
 ┌───────────────────────────────────────────────────────────────────────────────────────┐
@@ -317,71 +319,72 @@ func main() {
 
 > 应用场景：详尽的加密算法
 
-  1. AES加密
-     * 示例
-        ```go
-        package main
+1. AES加密
+    * 示例
+       ```go
+       package main
 
-        import (
-            "fmt"
-            "github.com/aide-cloud/universal/cipher"
-        )
-        
-        func main() {
-            key, iv := "1234567890123456", "1234567890123456"
-            aes, err := cipher.NewAes(key, iv)
-            if err != nil {
-                fmt.Println(err)
-                return
-            }
-        
-            // 加密
-            encryptStr, err := aes.EncryptAesBase64("123")
-            if err != nil {
-                fmt.Println(err)
-                return
-            }
-        
-            // 解密
-            decryptStr, err := aes.DecryptAesBase64(encryptStr)
-            if err != nil {
-                fmt.Println(err)
-                return
-            }
-        
-            fmt.Println("加密前：", "123")
-            fmt.Println("加密后：", encryptStr)
-            fmt.Println("解密后：", decryptStr)
-        }
-
-        ```
-  2. MD5加密
-     * 示例
-        ```go
-        package main
-
-        import (
-            "fmt"
-            "github.com/aide-cloud/universal/cipher"
-        )
-        
-        func show(str string) {
-            md5Str := cipher.MD5(str)
-            fmt.Println(md5Str)
-        }
-        
-        func main() {
-            show("123")
-            show("abc")
-            show("xxx")
-        }
-        ```
+       import (
+           "fmt"
+           "github.com/aide-cloud/universal/cipher"
+       )
        
+       func main() {
+           key, iv := "1234567890123456", "1234567890123456"
+           aes, err := cipher.NewAes(key, iv)
+           if err != nil {
+               fmt.Println(err)
+               return
+           }
+       
+           // 加密
+           encryptStr, err := aes.EncryptAesBase64("123")
+           if err != nil {
+               fmt.Println(err)
+               return
+           }
+       
+           // 解密
+           decryptStr, err := aes.DecryptAesBase64(encryptStr)
+           if err != nil {
+               fmt.Println(err)
+               return
+           }
+       
+           fmt.Println("加密前：", "123")
+           fmt.Println("加密后：", encryptStr)
+           fmt.Println("解密后：", decryptStr)
+       }
+
+       ```
+2. MD5加密
+    * 示例
+       ```go
+       package main
+
+       import (
+           "fmt"
+           "github.com/aide-cloud/universal/cipher"
+       )
+       
+       func show(str string) {
+           md5Str := cipher.MD5(str)
+           fmt.Println(md5Str)
+       }
+       
+       func main() {
+           show("123")
+           show("abc")
+           show("xxx")
+       }
+       ```
+
 ### 6. graphql模块
 
 > 应用场景：graphql服务, 让你的服务更加优雅
 
 * 目录结构
+
 ```bash
 ├── .
 ├── go.mod
@@ -439,6 +442,7 @@ func main() {
 ```
 
 * sdl/root.graphql
+
 ```graphql
 schema {
     query: RootQuery
@@ -455,6 +459,7 @@ type RootMutation {
 ```
 
 * 运行效果
+
 ```bash
 [GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
 
@@ -477,4 +482,64 @@ Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-
 
 * 运行截图
 
-![img.png](images/img.png)
+![img.png](doc/img.png)
+
+### 7. gin组件
+
+> 应用场景：gin框架在业务上的封装
+
+* 简单使用
+
+```go
+package main
+
+import (
+	"github.com/aide-cloud/universal/executor"
+	lGin "github.com/aide-cloud/universal/gin"
+	"github.com/gin-gonic/gin"
+)
+
+func RegisterGinRouters(r gin.IRouter) {
+	r.GET("/get", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "get router",
+		})
+	})
+	r.POST("/add", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "add router",
+		})
+	})
+}
+
+func main() {
+	l := lGin.NewGin(
+		gin.Default(),
+		lGin.WithRegisterRouters(
+			lGin.RegisterPing,
+			RegisterGinRouters,
+			func(r gin.IRouter) {
+				r.GET("/hello", func(c *gin.Context) {
+					c.JSON(200, gin.H{
+						"message": "hello get",
+					})
+				})
+				r.POST("/hello", func(c *gin.Context) {
+					c.JSON(200, gin.H{
+						"message": "hello ",
+					})
+				})
+			},
+		),
+	)
+	executor.ExecMulSerProgram(executor.NewLierCmd(
+		executor.WithServiceName("master"),
+		executor.WithProperty(map[string]string{
+			"version": "1.0.0",
+		}),
+		executor.WithServices(l),
+	))
+}
+
+
+```

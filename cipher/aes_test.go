@@ -10,14 +10,14 @@ func TestAes(t *testing.T) {
 		return
 	}
 
-	encrypt, err := aes.EncryptAesBase64("123456")
+	encrypt, err := aes.EncryptBase64([]byte("123456"))
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	t.Log(encrypt)
 
-	decrypt, err := aes.DecryptAesBase64(encrypt)
+	decrypt, err := aes.DecryptBase64(encrypt)
 
 	if err != nil {
 		t.Error(err)
@@ -25,7 +25,7 @@ func TestAes(t *testing.T) {
 	}
 	t.Log(decrypt)
 
-	if decrypt != "123456" {
+	if string(decrypt) != "123456" {
 		t.Error("decrypt != 123456")
 		return
 	}

@@ -24,17 +24,8 @@ func NewChain(opts ...Option) *Chain {
 	return c
 }
 
-// AddTask adds a task to the chain.
-func AddTask(chain ...Interface) Option {
-	return func(c *Chain) {
-		c.locker.Lock()
-		defer c.locker.Unlock()
-		c.tasks = append(c.tasks, chain...)
-	}
-}
-
-// AppendTask appends a task to the chain.
-func AppendTask(chain ...Interface) Option {
+// WithTask replaces the tasks with the given chain.
+func WithTask(chain ...Interface) Option {
 	return func(c *Chain) {
 		c.locker.Lock()
 		defer c.locker.Unlock()

@@ -3,11 +3,12 @@ package main
 import (
 	"embed"
 	"github.com/aide-cloud/universal/graphql"
+
 	"github.com/gin-gonic/gin"
 )
 
 // Content holds all the SDL file content.
-//go:embed example/graphql/sdl
+//go:embed sdl
 var content embed.FS
 
 type Root struct{}

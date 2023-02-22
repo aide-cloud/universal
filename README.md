@@ -37,22 +37,74 @@ func Demo() error {
 * 链式反应
 
 ```go
-func Demo() error {
-    chainTask := chain.NewChain()
-    chainTask.Append(
-        func () error {
-            return doSomething1("a", "b")
-        },
-        func () error {
-            return doSomething2(1,2,3)
-        },
-        func () error {
-            return doSomething3(map[string]interface{}{"a": 1, "b": 2})
-        },
-    )
-    
-    return chainTask.Do()
+package main
+
+import (
+	"errors"
+	"fmt"
+	"github.com/aide-cloud/universal/chain"
+)
+
+func Action1() error {
+	// do something
+	return nil
 }
+
+func Action2() error {
+	// do something
+	return nil
+}
+
+func Action3() error {
+	// do something
+	return nil
+}
+
+func CheckName(name string) error {
+	if name == "" {
+		return errors.New("name is empty")
+	}
+
+	if len(name) > 10 {
+		return errors.New("name is too long")
+	}
+
+	return nil
+}
+
+func CheckAge(age int) error {
+	if age < 0 {
+		return errors.New("age is too small")
+	}
+
+	if age > 100 {
+		return errors.New("age is too big")
+	}
+
+	return nil
+}
+
+func main() {
+	chainAction := chain.NewChain(
+		chain.WithTask(
+			Action1,
+			Action2,
+			Action3,
+			func() error {
+				return CheckName("aide")
+			},
+			func() error {
+				return CheckAge(20)
+			},
+		),
+	)
+	if err := chainAction.Do(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("done")
+}
+
 ```
 
 ### 2. 通用日志
@@ -214,54 +266,61 @@ master service stopped!
   1. AES加密
      * 示例
         ```go
-        package cipher
+        package main
+
+        import (
+            "fmt"
+            "github.com/aide-cloud/universal/cipher"
+        )
         
-        import "testing"
-        
-        func TestAes(t *testing.T) {
+        func main() {
             key, iv := "1234567890123456", "1234567890123456"
-            aes, err := NewAes(key, iv)
+            aes, err := cipher.NewAes(key, iv)
             if err != nil {
-                t.Error(err)
+                fmt.Println(err)
                 return
             }
         
-            encrypt, err := aes.EncryptAesBase64("123456")
+            // 加密
+            encryptStr, err := aes.EncryptAesBase64("123")
             if err != nil {
-                t.Error(err)
+                fmt.Println(err)
                 return
             }
-            t.Log(encrypt)
         
-            decrypt, err := aes.DecryptAesBase64(encrypt)
-        
+            // 解密
+            decryptStr, err := aes.DecryptAesBase64(encryptStr)
             if err != nil {
-                t.Error(err)
+                fmt.Println(err)
                 return
             }
-            t.Log(decrypt)
         
-            if decrypt != "123456" {
-                t.Error("decrypt != 123456")
-                return
-            }
+            fmt.Println("加密前：", "123")
+            fmt.Println("加密后：", encryptStr)
+            fmt.Println("解密后：", decryptStr)
         }
 
         ```
   2. MD5加密
      * 示例
         ```go
-        package cipher
+        package main
 
-        import "testing"
+        import (
+            "fmt"
+            "github.com/aide-cloud/universal/cipher"
+        )
         
-        func TestMD5(t *testing.T) {
-            md5Str := MD5("123456")
-            if md5Str != "e10adc3949ba59abbe56e057f20f883e" {
-                t.Error("md5 error")
-			}
+        func show(str string) {
+            md5Str := cipher.MD5(str)
+            fmt.Println(md5Str)
         }
-
+        
+        func main() {
+            show("123")
+            show("abc")
+            show("xxx")
+        }
         ```
        
 ### 6. graphql模块
@@ -279,6 +338,7 @@ master service stopped!
 ```
 
 * main.go
+
 ```go
 package main
 
@@ -289,7 +349,7 @@ import (
 )
 
 // Content holds all the SDL file content.
-//go:embed sdl
+//go:embed example/graphql/sdl
 var content embed.FS
 
 type Root struct{}

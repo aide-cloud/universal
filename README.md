@@ -4,6 +4,73 @@ Basic, universal, everyone's package
 
 ---
 
+## 目录结构
+
+```bash
+.
+├── LICENSE
+├── README.md
+├── chain               # 链式反应模块
+│   └── task_chain.go
+├── cipher              # 加密解密模块
+│   ├── aes_test.go
+│   ├── ase.go          # aes加密解密
+│   ├── md5.go          # md5加密
+│   └── md5_test.go
+├── doc                 # 文档
+│   └── img.png
+├── example             # 示例程序， 每个包都有一个示例程序，可独立运行
+│   ├── chain
+│   │   └── cmd.go
+│   ├── cipher
+│   │   ├── aes
+│   │   │   └── cmd.go
+│   │   └── md5
+│   │       └── cmd.go
+│   ├── executor
+│   │   ├── ctrlc
+│   │   │   └── cmd.go
+│   │   ├── lier_cmd
+│   │   │   └── cmd.go
+│   │   └── lier_cmd_gin
+│   │       └── cmd.go
+│   ├── gin
+│   │   └── cmd.go
+│   └── graphql
+│       ├── cmd.go
+│       └── sdl
+│           └── root.graphql
+├── executor                # 执行器模块
+│   ├── ctrlc.go            # 信号处理
+│   ├── exec_test.go
+│   ├── executor.go         # 执行器
+│   └── lier_cmd.go         # 基于执行器的最佳实践
+├── gin                     # gin框架模块，基于gin框架封装
+│   ├── gin.go              # gin框架封装，实现执行器的接口，可以当作执行器服务使用
+│   ├── middleware          # gin常用中间件
+│   │   ├── aes.go          # aes加密解密中间件，解密后放入context
+│   │   ├── cross.go        # 跨域中间件，支持跨域配置
+│   │   ├── logger.go       # 日志中间件，记录请求日志
+│   │   ├── prometheus.go   # prometheus中间件，记录请求指标
+│   │   └── recover.go      # 异常恢复中间件，捕获异常并返回
+│   ├── request             # 请求参数解析，支持json，form，query，path，header，cookie
+│   │   └── request.go
+│   ├── response            # 响应参数封装
+│   │   └── response.go
+│   └── routes              # 常用业务路由封装
+│       ├── file_upload.go
+│       ├── graphql.go
+│       ├── lier_router.go
+│       └── metric_route.go
+├── go.mod
+├── go.sum
+└── graphql               # graphql模块， 让graphql更简单
+    ├── route.go
+    ├── route_test.go
+    └── schema.go
+
+```
+
 ## 包功能说明
 
 ### 1. 链式反应

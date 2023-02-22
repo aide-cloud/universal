@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"github.com/aide-cloud/universal/alog"
 	"testing"
 )
 
@@ -12,10 +11,10 @@ func TestName(t *testing.T) {
 }
 
 func TestOption(t *testing.T) {
-	lierCmd := NewLierCmd(WithLogger(alog.NewLogger()), WithProperty(map[string]string{"test ": "test"}), AddProperty("test2", "test2"))
+	lierCmd := NewLierCmd(WithProperty(map[string]string{"test ": "test"}))
 	ExecMulSerProgram(lierCmd)
 }
 
 func TestCtrlC(t *testing.T) {
-	NewCtrlC(NewLierCmd(WithLogger(alog.NewLogger()))).Run()
+	NewCtrlC(NewLierCmd()).Run()
 }

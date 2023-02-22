@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/aide-cloud/universal/aerror"
 	"github.com/aide-cloud/universal/gin/response"
 	"github.com/gin-gonic/gin"
 	"path"
@@ -13,17 +12,17 @@ func FileUpload(savePath string) gin.HandlerFunc {
 		file, err := c.FormFile("file")
 		if err != nil {
 			//c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			response.JSON(c, nil, aerror.New(aerror.WithCode(aerror.ErrCodeInvalidParam), aerror.WithErr(err)))
+			response.Failed(c, "", err)
 			return
 		}
 
 		// 上传文件至指定目录
 		err = c.SaveUploadedFile(file, path.Join(savePath, file.Filename))
 		if err != nil {
-			response.JSON(c, nil, aerror.New(aerror.WithCode(aerror.ErrCodeInvalidParam), aerror.WithErr(err)))
+			response.Failed(c, "", err)
 			return
 		}
 
-		response.JSON(c, gin.H{"filename": file.Filename}, nil)
+		response.Success(c, "", gin.H{"filename": file.Filename})
 	}
 }

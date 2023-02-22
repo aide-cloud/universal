@@ -1,7 +1,5 @@
 package executor
 
-import "github.com/aide-cloud/universal/alog"
-
 type (
 	// Service 完整的服务接口
 	Service interface {
@@ -18,11 +16,6 @@ type (
 		Stop()
 	}
 
-	// Logger 设置日志
-	Logger interface {
-		Log() alog.Logger
-	}
-
 	// MulServices 多服务程序的注册
 	MulServices interface {
 		ServicesRegistration() []Service
@@ -32,10 +25,7 @@ type (
 	MulServicesProgram interface {
 		Service
 		MulServices
-		Logger
 	}
-
-	NewServiceFunc func(logger alog.Logger) Service
 )
 
 // ExecMulSerProgram 执行多服务程序

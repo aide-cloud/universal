@@ -29,8 +29,8 @@ func init() {
 	prometheus.MustRegister(requestGauge, requestCounter)
 }
 
-// Request 响应时间统计中间件
-func Request(logger alog.Logger) gin.HandlerFunc {
+// Prometheus 响应时间统计中间件
+func Prometheus(logger alog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		begin := time.Now()
 		c.Next()

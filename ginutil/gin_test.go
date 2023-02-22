@@ -1,4 +1,4 @@
-package web
+package ginutil
 
 import (
 	"github.com/aide-cloud/universal/alog"

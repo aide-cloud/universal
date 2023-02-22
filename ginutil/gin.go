@@ -1,12 +1,12 @@
-package web
+package ginutil
 
 import (
 	"context"
 	"fmt"
 	"github.com/aide-cloud/universal/alog"
 	"github.com/aide-cloud/universal/executor"
-	"github.com/aide-cloud/universal/web/middleware"
-	"github.com/aide-cloud/universal/web/routes"
+	"github.com/aide-cloud/universal/ginutil/middleware"
+	"github.com/aide-cloud/universal/ginutil/routes"
 	"net/http"
 	"time"
 

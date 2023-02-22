@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"github.com/aide-cloud/universal/alog"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,21 +11,23 @@ type (
 	// CtrlC 捕获ctrl-c的控制器
 	CtrlC struct {
 		program MulServicesProgram
+		// 信号通道
+		signalChan chan os.Signal
 	}
 )
 
 // NewCtrlC 初始化生成CtrlC
 func NewCtrlC(ex MulServicesProgram) *CtrlC {
 	return &CtrlC{
-		program: ex,
+		program:    ex,
+		signalChan: make(chan os.Signal, 1),
 	}
 }
 
 // 等待键盘信号
-func (*CtrlC) waitSignals(signals ...os.Signal) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, signals...)
-	<-c
+func (c *CtrlC) waitSignals(signals ...os.Signal) {
+	signal.Notify(c.signalChan, signals...)
+	<-c.signalChan
 }
 
 // 接收到kill信号
@@ -36,6 +38,7 @@ func (c *CtrlC) waitKill() {
 // Run 开始运行程序，遇到os.Interrupt停止
 func (c *CtrlC) Run() {
 	go func() {
+		defer c.recover()
 		// 启动前置服务
 		if err := c.program.Start(); err != nil {
 			panic(err)
@@ -50,13 +53,21 @@ func (c *CtrlC) Run() {
 	c.program.Stop()
 }
 
+func (c *CtrlC) recover() {
+	if err := recover(); err != nil {
+		fmt.Println(err)
+		c.signalChan <- os.Kill
+	}
+}
+
 // 停止应用子服务
 func (c *CtrlC) startMulServices() {
 	servicesSlice := c.program.ServicesRegistration()
 	for _, service := range servicesSlice {
 		go func(s Service) {
+			defer c.recover()
 			if err := s.Start(); err != nil {
-				c.program.Log().Error("service start error", alog.Arg{Key: "error", Value: err})
+				panic(err)
 			}
 		}(service)
 	}
@@ -66,6 +77,6 @@ func (c *CtrlC) startMulServices() {
 func (c *CtrlC) stopMulServices() {
 	servicesSlice := c.program.ServicesRegistration()
 	for _, service := range servicesSlice {
-		go service.Stop()
+		service.Stop()
 	}
 }

@@ -2,16 +2,19 @@ package executor
 
 import (
 	"fmt"
-	"github.com/aide-cloud/universal/alog"
 	"sync"
 )
 
 type (
 	LierCmd struct {
-		service  []Service
-		logger   alog.Logger
-		property map[string]string
-		lock     sync.Mutex
+		serviceName string
+		service     []Service
+		property    map[string]string
+		lock        sync.Mutex
+
+		// 自定义皮肤
+		skin      string
+		isSetSkin bool
 	}
 
 	LierCmdOption func(*LierCmd)
@@ -22,8 +25,9 @@ var _ MulServicesProgram = (*LierCmd)(nil)
 // NewLierCmd 初始化生成LierCmd
 func NewLierCmd(options ...LierCmdOption) MulServicesProgram {
 	l := &LierCmd{
-		property: make(map[string]string),
-		service:  make([]Service, 0, 32),
+		property:    make(map[string]string),
+		service:     make([]Service, 0, 32),
+		serviceName: "LierCmd",
 	}
 	l.lock.Lock()
 	for _, option := range options {
@@ -31,13 +35,6 @@ func NewLierCmd(options ...LierCmdOption) MulServicesProgram {
 	}
 	l.lock.Unlock()
 	return l
-}
-
-func (cmd *LierCmd) Log() alog.Logger {
-	if cmd.logger == nil {
-		cmd.logger = alog.NewLogger()
-	}
-	return cmd.logger
 }
 
 // Start 启动
@@ -48,7 +45,7 @@ func (cmd *LierCmd) Start() error {
 
 // Stop 停止
 func (cmd *LierCmd) Stop() {
-	cmd.Log().Warn("master service stopped!")
+	fmt.Println(cmd.serviceName + " service stopped!")
 }
 
 // ServicesRegistration 服务注册
@@ -57,6 +54,14 @@ func (cmd *LierCmd) ServicesRegistration() []Service {
 }
 
 func (cmd *LierCmd) fmtASCIIGenerator() {
+	fmt.Println(cmd.serviceName + " service starting...")
+
+	if cmd.isSetSkin {
+		// 自定义皮肤
+		fmt.Println(cmd.skin)
+		return
+	}
+
 	fmt.Println(`┌───────────────────────────────────────────────────────────────────────────────────────┐
 │                                      _____  _____   ______                            │
 │                               /\    |_   _||  __ \ |  ____|                           │
@@ -85,29 +90,16 @@ func (cmd *LierCmd) fmtASCIIGenerator() {
 	fmt.Println(detail)
 }
 
-// WithServices 设置服务
-func WithServices(services ...NewServiceFunc) LierCmdOption {
-	return func(l *LierCmd) {
-		for _, service := range services {
-			l.service = append(l.service, service(l.logger))
-		}
-	}
-}
-
 // AddService 添加一个服务
-func AddService(service NewServiceFunc) LierCmdOption {
-	return func(l *LierCmd) {
-		if service == nil {
-			return
-		}
-		l.service = append(l.service, service(l.logger))
-	}
+func (cmd *LierCmd) AddService(service Service) *LierCmd {
+	cmd.service = append(cmd.service, service)
+	return cmd
 }
 
-// WithLogger 设置日志
-func WithLogger(logger alog.Logger) LierCmdOption {
+// WithServices 设置服务
+func WithServices(services ...Service) LierCmdOption {
 	return func(l *LierCmd) {
-		l.logger = logger
+		l.service = services
 	}
 }
 
@@ -121,12 +113,17 @@ func WithProperty(property map[string]string) LierCmdOption {
 	}
 }
 
-// AddProperty 添加属性
-func AddProperty(key, value string) LierCmdOption {
+// WithSkin 设置皮肤
+func WithSkin(skin string) LierCmdOption {
 	return func(l *LierCmd) {
-		if key == "" {
-			return
-		}
-		l.property[key] = value
+		l.skin = skin
+		l.isSetSkin = true
+	}
+}
+
+// WithServiceName 设置服务名称
+func WithServiceName(serviceName string) LierCmdOption {
+	return func(l *LierCmd) {
+		l.serviceName = serviceName
 	}
 }

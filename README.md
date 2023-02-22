@@ -1,60 +1,207 @@
 # universal
+
 Basic, universal, everyone's package
 
 ---
 
 ## 包功能说明
 
-1. ✅ 日志模块
-   1. ✅ 日志级别
-   2. ✅ 日志格式
-   3. ✅ 日志输出
-   4. ✅ 日志切割
-   5. ✅ 日志压缩
-   6. ✅ 日志归档
-   7. ☑️ 日志回滚
-   8. ☑️ 日志分析
-   9. ☑️ 日志监控
-   10. ☑️ 日志报警
-   11. ☑️ 日志统计
-   12. ☑️ 日志分布式
-2. ✅ 读取配置文件模块 
-   1. ✅ 读取yml配置文件
-   2. ☑️ 读取json配置文件
-   3. ☑️ 配置文件热更新
-   4. ☑️ 配置文件远端更新
-   5. ☑️ 配置对接配置中心
-3. ✅ 加密模块
-   1. ✅ aes加密
-   2. ✅ md5加密
-4. ✅ 客户端连接模块
-   1. ☑️ tcp连接
-   2. ☑️ udp连接
-   4. ☑️ websocket连接
-   5. ☑️ grpc连接
-   6. ✅ redis连接
-   7. ✅ mysql连接
-   8. ✅ mqtt连接
-   9. ☑️ kafka连接
-5. ✅ 服务程序执行器
-   1. ✅ 服务程序执行器接口
-   2. ✅ 子程序接口
-   3. ✅ 子程序管理器
-   4. ✅ LierCmd服务程序
-6. ✅ graphql路由
-   1. ✅ graphql Get请求
-   2. ✅ graphql Post请求
-   3. ✅ graphql gin 路由注册
-   4. ✅ graphql gin router
-7. ✅ prometheus Exporter
-   1. ✅ prometheus metrics router
-   2. ✅ prometheus metrics
-   3. ✅ prometheus metrics exporter
-8. ☑️ 服务注册与发现
-9. ✅ 基于gin封装的http服务
-   1. ✅ 路由注册
-   2. ✅ 路由中间件
-   3. ☑️ request封装
-   4. ☑️ response封装
+### 1. 链式反应
 
-10. ☑️ 基础数据类型
+> 应用场景：解决if地狱问题
+
+* 传统写法
+
+ ```go
+
+func Demo() error {
+    err := doSomething1()
+    if err != nil {
+        return err
+    }
+    
+    err = doSomething2()
+    if err != nil {
+        return err
+    }
+    
+    err = doSomething3()
+    if err != nil {
+        return err
+    }
+    
+    return nil
+}
+```
+
+* 链式反应
+
+```go
+func Demo() error {
+    chainTask := chain.NewChain()
+    chainTask.Append(
+        func () error {
+            return doSomething1("a", "b")
+        },
+        func () error {
+            return doSomething2(1,2,3)
+        },
+        func () error {
+            return doSomething3(map[string]interface{}{"a": 1, "b": 2})
+        },
+    )
+    
+    return chainTask.Do()
+}
+```
+
+### 2. 通用日志
+
+> 应用场景：统一日志格式
+
+### 3. 通用错误
+
+> 应用场景：统一错误处理
+
+### 4. 执行器
+
+> 应用场景：多服务程序启动，优雅退出，信号处理，资源释放
+
+* 简单使用 
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/aide-cloud/universal/executor"
+)
+
+type MyServer struct{}
+type ChildServer struct{}
+
+func (m *ChildServer) Start() error {
+	// do something
+	fmt.Println("ChildServer start")
+	return nil
+}
+
+func (m *ChildServer) Stop() {
+	// do something
+	fmt.Println("ChildServer stop")
+}
+
+func NewChildServer() *ChildServer {
+	return &ChildServer{}
+}
+
+func (m *MyServer) Start() error {
+	// do something
+	fmt.Println("start")
+	return nil
+}
+
+func (m *MyServer) Stop() {
+	// do something
+	fmt.Println("stop")
+}
+
+func (m *MyServer) ServicesRegistration() []executor.Service {
+	return []executor.Service{
+		NewChildServer(),
+	}
+}
+
+func NewMyServer() *MyServer {
+	return &MyServer{}
+}
+
+func main() {
+	executor.ExecMulSerProgram(NewMyServer())
+}
+
+```
+
+* 使用LierCmd快速启动
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/aide-cloud/universal/executor"
+)
+
+type MyServer struct{}
+type ChildServer struct{}
+
+func (m *ChildServer) Start() error {
+	// do something
+	fmt.Println("ChildServer start")
+	return nil
+}
+
+func (m *ChildServer) Stop() {
+	// do something
+	fmt.Println("ChildServer stop")
+}
+
+func NewChildServer() *ChildServer {
+	return &ChildServer{}
+}
+
+func (m *MyServer) Start() error {
+	// do something
+	fmt.Println("my server start")
+	return nil
+}
+
+func (m *MyServer) Stop() {
+	// do something
+	fmt.Println("my server stop")
+}
+
+func NewMyServer() *MyServer {
+	return &MyServer{}
+}
+
+func main() {
+	executor.ExecMulSerProgram(executor.NewLierCmd(
+		executor.WithServiceName("master"),
+		executor.WithProperty(map[string]string{
+			"version": "1.0.0",
+			"name   ": "master",
+			"time   ": "2020-12-12 12:12:12",
+			"author ": "aide-cloud",
+		}),
+		executor.WithServices(NewMyServer(), NewChildServer()),
+	))
+}
+
+``` 
+
+> 运行效果
+```bash
+master service starting...
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│                                      _____  _____   ______                            │
+│                               /\    |_   _||  __ \ |  ____|                           │
+│                              /  \     | | || |  | || |__                              │
+│                             / /\ \    | | || |  | ||  __|                             │
+│                            / /__\ \  _| |_|| |__| || |____                            │
+│                           /_/    \_\|_____||_____/ |______|                           │                                                       
+│                                 good luck and no bug                                  │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────────
+├── version: 1.0.0
+├── name   : master
+├── time   : 2020-12-12 12:12:12
+├── author : aide-cloud
+└──────────────────────────────────────────────────────────────────────────────────────
+
+ChildServer start
+my server start
+^Cmy server stop
+ChildServer stop
+master service stopped!
+```

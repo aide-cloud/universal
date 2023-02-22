@@ -15,8 +15,8 @@ type (
 	}
 )
 
-// NewAesCipher 创建一个新的AesCipher
-func NewAesCipher(key, iv string) (*AesCipher, error) {
+// NewAes 创建一个新的AesCipher
+func NewAes(key, iv string) (*AesCipher, error) {
 	aesExcept := AesCipher{}
 	aesExcept.key = []byte(key)
 	aesExcept.iv = []byte(iv)

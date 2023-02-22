@@ -4,7 +4,7 @@ import "testing"
 
 func TestAes(t *testing.T) {
 	key, iv := "1234567890123456", "1234567890123456"
-	aes, err := NewAesCipher(key, iv)
+	aes, err := NewAes(key, iv)
 	if err != nil {
 		t.Error(err)
 		return

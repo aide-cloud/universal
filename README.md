@@ -205,3 +205,61 @@ my server start
 ChildServer stop
 master service stopped!
 ```
+
+
+### 5. 加密模块
+
+> 应用场景：详尽的加密算法
+
+  1. AES加密
+     * 示例
+        ```go
+        package cipher
+        
+        import "testing"
+        
+        func TestAes(t *testing.T) {
+            key, iv := "1234567890123456", "1234567890123456"
+            aes, err := NewAes(key, iv)
+            if err != nil {
+                t.Error(err)
+                return
+            }
+        
+            encrypt, err := aes.EncryptAesBase64("123456")
+            if err != nil {
+                t.Error(err)
+                return
+            }
+            t.Log(encrypt)
+        
+            decrypt, err := aes.DecryptAesBase64(encrypt)
+        
+            if err != nil {
+                t.Error(err)
+                return
+            }
+            t.Log(decrypt)
+        
+            if decrypt != "123456" {
+                t.Error("decrypt != 123456")
+                return
+            }
+        }
+
+        ```
+  2. MD5加密
+     * 示例
+        ```go
+        package cipher
+
+        import "testing"
+        
+        func TestMD5(t *testing.T) {
+            md5Str := MD5("123456")
+            if md5Str != "e10adc3949ba59abbe56e057f20f883e" {
+                t.Error("md5 error")
+			}
+        }
+
+        ```

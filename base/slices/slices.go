@@ -17,7 +17,7 @@ func Index[T comparable](a []T, x T) int {
 
 // IndexStruct returns the index of the first occurrence of the specified element in the specified slice.
 // If the slice does not contain the element, it returns -1.
-func IndexStruct[T comparable](a []T, f func(T) bool) int {
+func IndexStruct[T any](a []T, f func(T) bool) int {
 	for i, n := range a {
 		if f(n) {
 			return i
@@ -32,7 +32,7 @@ func Contains[T comparable](a []T, x T) bool {
 }
 
 // ContainsStruct returns true if the specified slice contains the specified element.
-func ContainsStruct[T comparable](a []T, f func(T) bool) bool {
+func ContainsStruct[T any](a []T, f func(T) bool) bool {
 	return IndexStruct(a, f) != -1
 }
 

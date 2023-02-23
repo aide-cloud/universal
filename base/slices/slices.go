@@ -109,3 +109,22 @@ func UniqueStruct[T Uniquer](a []T) []T {
 
 	return b
 }
+
+// Merge returns a new slice containing the elements of the specified slices.
+func Merge[T any](a ...[]T) []T {
+	var b []T
+	for _, x := range a {
+		b = append(b, x...)
+	}
+	return b
+}
+
+// MergeUnique returns a new slice containing the elements of the specified slices with duplicates removed.
+func MergeUnique[T comparable](a ...[]T) []T {
+	return Unique(Merge(a...))
+}
+
+// MergeUniqueStruct returns a new slice containing the elements of the specified slices with duplicates removed.
+func MergeUniqueStruct[T Uniquer](a ...[]T) []T {
+	return UniqueStruct(Merge(a...))
+}

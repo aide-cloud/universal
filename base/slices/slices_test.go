@@ -602,3 +602,100 @@ func TestContainsStruct(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeUnique(t *testing.T) {
+	type args struct {
+		a [][]int
+	}
+	tests := []struct {
+		name string
+		args args
+		want []int
+	}{
+		{
+			name: "merge",
+			args: args{
+				a: [][]int{
+					{1, 2, 3},
+					{2, 3, 4},
+					{3, 4, 5},
+				},
+			},
+			want: []int{1, 2, 3, 4, 5},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MergeUnique(tt.args.a...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MergeUnique() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMerge(t *testing.T) {
+	type args struct {
+		a [][]int
+	}
+	tests := []struct {
+		name string
+		args args
+		want []int
+	}{
+		{
+			name: "merge",
+			args: args{
+				a: [][]int{
+					{1, 2, 3},
+					{2, 3, 4},
+					{3, 4, 5},
+				},
+			},
+			want: []int{1, 2, 3, 2, 3, 4, 3, 4, 5},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Merge(tt.args.a...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Merge() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMergeUniqueStruct(t *testing.T) {
+	type args struct {
+		a [][]Student
+	}
+	tests := []struct {
+		name string
+		args args
+		want []Student
+	}{
+		{
+			args: args{
+				a: [][]Student{
+					{
+						{Name: "小明", Age: 18},
+						{Name: "小花", Age: 19},
+						{Name: "小北", Age: 20},
+						{Name: "小北", Age: 22},
+						{Name: "小北", Age: 21},
+					},
+				},
+			},
+			want: []Student{
+				{Name: "小明", Age: 18},
+				{Name: "小花", Age: 19},
+				{Name: "小北", Age: 20},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MergeUniqueStruct(tt.args.a...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MergeUniqueStruct() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

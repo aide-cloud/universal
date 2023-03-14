@@ -10,6 +10,19 @@ Basic, universal, everyone's package
 .
 ├── LICENSE
 ├── README.md
+├── base
+│   ├── hash            # hash模块
+│   │   ├── map.go
+│   │   └── map_test.go
+│   ├── set            # set模块
+│   │   ├── set.go
+│   │   └── set_test.go
+│   ├── slices          # slice模块
+│   │   ├── slices.go
+│   │   └── slices_test.go
+│   ├── strings          # string模块
+│   │   ├── strings.go
+│   │   └── strings_test.go
 ├── chain               # 链式反应模块
 │   └── task_chain.go
 ├── cipher              # 加密解密模块
@@ -608,5 +621,35 @@ func main() {
 	))
 }
 
+
+```
+
+### 8. base 模块
+
+> 应用场景：基础模块，包含了一些基础的工具类
+
+#### 8.1. base/hash
+
+* 简单使用
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/aide-cloud/universal/base/hash"
+)
+
+func main() {
+   m := NewHashMap()
+
+   for i := 0; i < 10; i++ {
+      m.Add(strconv.Itoa(i), i)
+   }
+
+   m.Range(func(key string, value interface{}) {
+      fmt.Println("key: ", key, ", value: ", value)
+   })
+}
 
 ```

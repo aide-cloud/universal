@@ -9,7 +9,7 @@ type Row struct {
 	// 序号
 	Index int `ex:"head:序号;index:0;"`
 	// 姓名
-	Name string `ex:"head:姓名;index:1;"`
+	Name string `ex:"head:姓名;"`
 	// 年龄
 	Age    int      `ex:"head:年龄;index:2;"`
 	Others Contents `json:"others" ex:"other:true;"`

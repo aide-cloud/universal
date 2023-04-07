@@ -167,30 +167,35 @@ func (l *Excel) Marshal(target any) error {
 		for j := 0; j < numField; j++ {
 			field := numFieldT.Field(j)
 			if setting, ok := l.headers[field.Name]; ok {
+				index := setting.Index
+				if index == -1 {
+					index = l.headRowMap[setting.Head]
+				}
+
 				if setting.Index >= len(row) || setting.Other {
 					continue
 				}
 
 				switch field.Type.Kind() {
 				case reflect.String:
-					v.Elem().Field(j).SetString(row[setting.Index])
-					useIndexMap[setting.Index] = struct{}{}
+					v.Elem().Field(j).SetString(row[index])
+					useIndexMap[index] = struct{}{}
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					value, _ := strconv.ParseInt(row[setting.Index], 10, 64)
+					value, _ := strconv.ParseInt(row[index], 10, 64)
 					v.Elem().Field(j).SetInt(value)
-					useIndexMap[setting.Index] = struct{}{}
+					useIndexMap[index] = struct{}{}
 				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					value, _ := strconv.ParseUint(row[setting.Index], 10, 64)
+					value, _ := strconv.ParseUint(row[index], 10, 64)
 					v.Elem().Field(j).SetUint(value)
-					useIndexMap[setting.Index] = struct{}{}
+					useIndexMap[index] = struct{}{}
 				case reflect.Float32, reflect.Float64:
-					value, _ := strconv.ParseFloat(row[setting.Index], 64)
+					value, _ := strconv.ParseFloat(row[index], 64)
 					v.Elem().Field(j).SetFloat(value)
-					useIndexMap[setting.Index] = struct{}{}
+					useIndexMap[index] = struct{}{}
 				case reflect.Bool:
-					value, _ := strconv.ParseBool(row[setting.Index])
+					value, _ := strconv.ParseBool(row[index])
 					v.Elem().Field(j).SetBool(value)
-					useIndexMap[setting.Index] = struct{}{}
+					useIndexMap[index] = struct{}{}
 				}
 			}
 		}

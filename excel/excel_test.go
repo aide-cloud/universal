@@ -1,7 +1,9 @@
 package excel
 
 import (
+	"bytes"
 	"encoding/json"
+	"os"
 	"testing"
 )
 
@@ -50,6 +52,41 @@ func TestExcel_checkTarget(t *testing.T) {
 func TestMarshal(t *testing.T) {
 	var r []*Row
 	e, err := NewExcel("work.xlsx", "Sheet1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := e.Marshal(&r); err != nil {
+		t.Fatal(err)
+	}
+
+	marshal, _ := json.Marshal(e.headers)
+	t.Log(string(marshal))
+
+	marshal, _ = json.Marshal(r)
+	t.Log(string(marshal))
+}
+
+func TestMarshalBytes(t *testing.T) {
+	var r []*Row
+	file, err := os.Open("work.xlsx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+
+	for {
+		b := make([]byte, 1024)
+		n, err := file.Read(b)
+		if err != nil {
+			break
+		}
+		buf.Write(b[:n])
+	}
+
+	e, err := NewExcelWithBytes(buf.Bytes(), "Sheet1")
 	if err != nil {
 		t.Fatal(err)
 	}

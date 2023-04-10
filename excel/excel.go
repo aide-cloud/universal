@@ -1,6 +1,7 @@
 package excel
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -41,6 +42,35 @@ type (
 		headRowMap map[string]int
 	}
 )
+
+func NewExcelWithBytes(data []byte, sheet string) (*Excel, error) {
+	ef, err := excelize.OpenReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := ef.GetRows(sheet)
+
+	if len(rows) == 0 {
+		return nil, fmt.Errorf("rows is empty")
+	}
+
+	headRow := rows[0]
+	headRowMap := make(map[string]int)
+	for index, head := range headRow {
+		if _, ok := headRowMap[head]; ok {
+			return nil, fmt.Errorf("head is duplicate")
+		}
+		headRowMap[head] = index
+	}
+
+	return &Excel{
+		ef:         ef,
+		rows:       rows,
+		headers:    make(map[string]*Setting),
+		headRowMap: headRowMap,
+	}, err
+}
 
 func NewExcel(name, sheet string) (*Excel, error) {
 	ef, err := excelize.OpenFile(name)
@@ -154,13 +184,13 @@ func (l *Excel) Marshal(target any) error {
 	tp := reflect.TypeOf(target)
 	numField := numFieldT.NumField()
 	useIndexMap := make(map[int]struct{})
+	tpTmp := tp.Elem().Elem()
+	if tpTmp.Kind() == reflect.Ptr {
+		tpTmp = tpTmp.Elem()
+	}
 
 	for i := 1; i < len(l.rows); i++ {
 		row := l.rows[i]
-		tpTmp := tp.Elem().Elem()
-		if tpTmp.Kind() == reflect.Ptr {
-			tpTmp = tpTmp.Elem()
-		}
 
 		v := reflect.New(tpTmp)
 
